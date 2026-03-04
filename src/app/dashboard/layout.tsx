@@ -2,7 +2,7 @@
 "use client";
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Megaphone, MessageSquare, Mic, Settings, LogOut, Zap } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, MessageSquare, Settings, LogOut, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,7 +14,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { title: "Lead Management", icon: Users, href: "/dashboard/leads" },
     { title: "Ad Campaign Tool", icon: Megaphone, href: "/dashboard/ads" },
     { title: "Omnichannel AI", icon: MessageSquare, href: "/dashboard/omnichannel" },
-    { title: "Voice Agent", icon: Mic, href: "/dashboard/voice" },
     { title: "Integrations", icon: Settings, href: "/dashboard/settings" },
   ];
 
@@ -25,7 +24,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarHeader className="p-4">
             <Link href="/" className="flex items-center gap-2">
               <Zap className="h-6 w-6 text-primary" />
-              <span className="font-headline text-xl font-bold">Academia Pilot</span>
+              <div className="flex flex-col leading-none">
+                <span className="font-headline text-lg font-black tracking-tighter uppercase italic text-primary">Academia</span>
+                <span className="font-headline text-[10px] font-bold tracking-widest uppercase text-foreground">Pilot</span>
+              </div>
             </Link>
           </SidebarHeader>
           <SidebarContent className="px-2">
@@ -39,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   >
                     <Link href={item.href}>
                       <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-primary' : ''}`} />
-                      <span>{item.title}</span>
+                      <span className="font-headline uppercase tracking-wider text-xs font-bold">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -47,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="p-4 border-t border-border">
-            <SidebarMenuButton className="w-full text-destructive hover:bg-destructive/10">
+            <SidebarMenuButton className="w-full text-destructive hover:bg-destructive/10 font-bold uppercase tracking-widest text-[10px]">
               <LogOut className="h-5 w-5 mr-2" />
               <span>Sign Out</span>
             </SidebarMenuButton>
@@ -58,13 +60,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center px-6 justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <h2 className="font-headline text-lg font-medium">
+              <h2 className="font-headline text-lg font-black uppercase italic tracking-tight">
                 {navItems.find(i => i.href === pathname)?.title || "Dashboard"}
               </h2>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
-                JD
+              <div className="w-10 h-10 rounded-none bg-primary flex items-center justify-center text-white font-black italic">
+                GB
               </div>
             </div>
           </header>
