@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -14,8 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Download, MessageSquare, Phone, MoreVertical, ArrowUpDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { LeadHoverSummary } from "@/components/leads/lead-hover-summary";
+import { LeadProfileDialog } from "@/components/leads/lead-profile-dialog";
 
 const initialLeads = [
   { id: 1, name: "Alice Johnson", email: "alice@example.com", phone: "+1 555-0101", status: "New", source: "Facebook Ad", date: "2024-05-20" },
@@ -29,6 +29,10 @@ export default function LeadManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  // Dialog State
+  const [selectedLead, setSelectedLead] = useState<any | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const filteredLeads = useMemo(() => {
     let result = initialLeads.filter(lead => 
@@ -55,11 +59,16 @@ export default function LeadManagement() {
     }
   };
 
+  const handleLeadClick = (lead: any) => {
+    setSelectedLead(lead);
+    setIsProfileOpen(true);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-primary pl-6">
         <div>
-          <h1 className="font-headline text-4xl font-black uppercase italic tracking-tighter leading-none">Lead Registry</h1>
+          <h1 className="font-headline text-4xl font-black uppercase italic tracking-tighter leading-none text-foreground">Lead Registry</h1>
           <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-2">Database: Analysis of High-Potential Students</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 rounded-none font-black uppercase tracking-widest text-xs px-8">
@@ -72,12 +81,12 @@ export default function LeadManagement() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Search leads by name or email..." 
-            className="pl-10 bg-background border-border rounded-none focus-visible:ring-primary"
+            className="pl-10 bg-background border-border rounded-none focus-visible:ring-primary h-12 text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" className="rounded-none font-black uppercase tracking-widest text-xs border-foreground hover:bg-foreground hover:text-background">
+        <Button variant="outline" className="rounded-none font-black uppercase tracking-widest text-xs border-foreground hover:bg-foreground hover:text-background h-12">
           <Filter className="mr-2 h-4 w-4" /> Status Filter
         </Button>
       </div>
@@ -86,7 +95,7 @@ export default function LeadManagement() {
         <Table>
           <TableHeader className="bg-secondary/5">
             <TableRow className="border-b-2 border-b-border">
-              <TableHead onClick={() => toggleSort('name')} className="cursor-pointer font-black uppercase tracking-widest text-[10px]">
+              <TableHead onClick={() => toggleSort('name')} className="cursor-pointer font-black uppercase tracking-widest text-[10px] h-14">
                 Student <ArrowUpDown className="inline ml-1 h-3 w-3" />
               </TableHead>
               <TableHead className="font-black uppercase tracking-widest text-[10px]">Contact Info</TableHead>
@@ -100,21 +109,17 @@ export default function LeadManagement() {
           </TableHeader>
           <TableBody>
             {filteredLeads.map((lead) => (
-              <TableRow key={lead.id} className="hover:bg-secondary/5 border-b border-border group">
+              <TableRow key={lead.id} className="hover:bg-secondary/5 border-b border-border group transition-colors">
                 <TableCell>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="font-black uppercase italic text-sm hover:text-primary transition-colors cursor-help underline underline-offset-4 decoration-primary/30 decoration-dashed">
-                        {lead.name}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0 border-none rounded-none w-auto" side="right" align="start">
-                      <LeadHoverSummary lead={lead} />
-                    </PopoverContent>
-                  </Popover>
+                  <button 
+                    onClick={() => handleLeadClick(lead)}
+                    className="font-black uppercase italic text-sm hover:text-primary transition-all text-left underline underline-offset-4 decoration-primary/30 decoration-dashed hover:decoration-primary"
+                  >
+                    {lead.name}
+                  </button>
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col gap-1 text-[11px] font-medium">
+                  <div className="flex flex-col gap-1 text-[11px] font-medium uppercase">
                     <span className="text-muted-foreground">{lead.email}</span>
                     <span className="font-bold">{lead.phone}</span>
                   </div>
@@ -129,7 +134,7 @@ export default function LeadManagement() {
                     {lead.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground text-[11px] font-bold uppercase">{lead.date}</TableCell>
+                <TableCell className="text-muted-foreground text-[11px] font-bold uppercase tracking-tighter">{lead.date}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-none">
@@ -144,10 +149,10 @@ export default function LeadManagement() {
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-none border-2 border-border">
-                        <DropdownMenuItem className="font-bold uppercase text-[10px] tracking-widest">Tactical Review</DropdownMenuItem>
-                        <DropdownMenuItem className="font-bold uppercase text-[10px] tracking-widest">Edit Profile</DropdownMenuItem>
-                        <DropdownMenuItem className="text-primary font-bold uppercase text-[10px] tracking-widest">Archive Lead</DropdownMenuItem>
+                      <DropdownMenuContent align="end" className="rounded-none border-2 border-border bg-background">
+                        <DropdownMenuItem onClick={() => handleLeadClick(lead)} className="font-bold uppercase text-[10px] tracking-widest cursor-pointer">Detailed Profile</DropdownMenuItem>
+                        <DropdownMenuItem className="font-bold uppercase text-[10px] tracking-widest cursor-pointer">Edit Matrix</DropdownMenuItem>
+                        <DropdownMenuItem className="text-primary font-bold uppercase text-[10px] tracking-widest cursor-pointer">Archive Unit</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -157,6 +162,12 @@ export default function LeadManagement() {
           </TableBody>
         </Table>
       </div>
+
+      <LeadProfileDialog 
+        lead={selectedLead} 
+        isOpen={isProfileOpen} 
+        onClose={() => setIsProfileOpen(false)} 
+      />
     </div>
   );
 }
@@ -166,7 +177,7 @@ function getStatusColor(status: string) {
     case 'New': return 'bg-blue-600 text-white';
     case 'Qualified': return 'bg-green-600 text-white';
     case 'Contacted': return 'bg-yellow-500 text-black';
-    case 'Converted': return 'bg-primary text-white';
+    case 'Converted': return 'bg-primary text-white shadow-[2px_2px_0px_rgba(0,0,0,0.2)]';
     default: return 'bg-muted text-foreground';
   }
 }
