@@ -18,11 +18,71 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { LeadProfileDialog } from "@/components/leads/lead-profile-dialog";
 
 const initialLeads = [
-  { id: 1, name: "Alice Johnson", email: "alice@example.com", phone: "+1 555-0101", status: "New", source: "Facebook Ad", date: "2024-05-20" },
-  { id: 2, name: "Bob Smith", email: "bob@example.com", phone: "+1 555-0102", status: "Qualified", source: "WhatsApp", date: "2024-05-19" },
-  { id: 4, name: "Diana Prince", email: "diana@example.com", phone: "+1 555-0104", status: "Converted", source: "Messenger", date: "2024-05-18" },
-  { id: 5, name: "Ethan Hunt", email: "ethan@example.com", phone: "+1 555-0105", status: "New", source: "Instagram Ad", date: "2024-05-18" },
-  { id: 6, name: "Fiona Apple", email: "fiona@example.com", phone: "+1 555-0106", status: "Qualified", source: "Website", date: "2024-05-17" },
+  { 
+    id: 1, 
+    name: "Alice Johnson", 
+    email: "alice@example.com", 
+    phone: "+1 555-0101", 
+    status: "New", 
+    source: "Facebook Ad", 
+    date: "2024-05-20",
+    billingDay: 15,
+    paymentHistory: [
+      { id: 'p1', date: '2024-04-15', amount: 150, status: 'paid', method: 'Visa' },
+      { id: 'p2', date: '2024-03-15', amount: 150, status: 'paid', method: 'Visa' }
+    ],
+    savedPaymentMethods: [
+      { id: 'pm1', last4: '4242', type: 'VISA', exp: '12/26', name: 'ALICE JOHNSON' }
+    ]
+  },
+  { 
+    id: 2, 
+    name: "Bob Smith", 
+    email: "bob@example.com", 
+    phone: "+1 555-0102", 
+    status: "Qualified", 
+    source: "WhatsApp", 
+    date: "2024-05-19",
+    billingDay: 1,
+    paymentHistory: [],
+    savedPaymentMethods: []
+  },
+  { 
+    id: 4, 
+    name: "Diana Prince", 
+    email: "diana@example.com", 
+    phone: "+1 555-0104", 
+    status: "Converted", 
+    source: "Messenger", 
+    date: "2024-05-18",
+    billingDay: 5,
+    paymentHistory: [
+      { id: 'p3', date: '2024-05-05', amount: 200, status: 'paid', method: 'Amex' }
+    ],
+    savedPaymentMethods: [
+      { id: 'pm2', last4: '1001', type: 'AMEX', exp: '08/27', name: 'DIANA PRINCE' }
+    ]
+  },
+  { 
+    id: 5, 
+    name: "Ethan Hunt", 
+    email: "ethan@example.com", 
+    phone: "+1 555-0105", 
+    status: "New", 
+    source: "Instagram Ad", 
+    date: "2024-05-18",
+    billingDay: 20
+  },
+  { 
+    id: 6, 
+    name: "Fiona Apple", 
+    email: "fiona@example.com", 
+    phone: "+1 555-0106", 
+    status: "Qualified", 
+    source: "Website", 
+    date: "2024-05-17",
+    billingDay: 10
+  },
 ];
 
 export default function LeadManagement() {
@@ -30,12 +90,11 @@ export default function LeadManagement() {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
-  // Dialog State
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const filteredLeads = useMemo(() => {
-    let result = initialLeads.filter(lead => 
+    let result = [...initialLeads].filter(lead => 
       lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -137,7 +196,7 @@ export default function LeadManagement() {
                 <TableCell className="text-muted-foreground text-[11px] font-bold uppercase tracking-tighter">{lead.date}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-none">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-none" onClick={() => handleLeadClick(lead)}>
                       <MessageSquare className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-none">
