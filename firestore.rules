@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE PHILOSOPHY
+     * This ruleset enforces a strict User-Ownership model. Every document in the system
+     * is associated with a specific user account. Authorization is primarily based on 
+     * the authenticated user's UID matching the ownership identifiers in the document 
+     * and the hierarchical path.
+     *
+     * DATA STRUCTURE
+     * The database is organized under a top-level /users/{userId} collection. All 
+     * user-specific configurations, integrations, campaigns, creatives, and leads 
+     * are stored as subcollections or nested subcollections under the user's root document.
+     *
+     * KEY SECURITY DECISIONS
+     * - Denormalization for Authorization: Every document contains a 'userId' field 
+     *   (or 'id' for the root UserAccount) to allow for performant, independent 
+     *   authorization checks without requiring cross-document lookups.
+     * - Immutability: Ownership fields (userId/id) are enforced as immutable upon 
+     *   creation to prevent unauthorized data transfer between accounts.
+     * - Existence Verification: All update and delete operations explicitly verify 
+     *   that the document exists before allowing the action.
+     * - Prototyping Flexibility: Rules do not enforce strict data schemas (types 
+     *   or optional fields) to facilitate rapid iteration, focusing exclusively 
+     *   on secure authorization and relational integrity.
+     */
+
+    // --- Global Helper Functions ---
+
+    /** @description Checks if the request is from an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the authenticated user matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Checks ownership and ensures the document exists for state changes. */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the root UserAccount entity.
+     * @path /users/{userId}
+     * @allow (get) If the user is the owner (auth.uid == userId).
+     * @deny (create) If the user's UID does not match the document ID.
+     * @principle Restricts root profile access and enforces path-to-data consistency.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Rules for sensitive third-party integration settings.
+       * @path /users/{userId}/integrationSettings/{id}
+       * @allow (create) If userId field in data matches the path segment and auth UID.
+       * @deny (update) If attempting to change the owning userId.
+       * @principle Protects sensitive API keys via strict ownership and denormalized UID.
+       */
+      match /integrationSettings/{id} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Rules for marketing ad campaigns.
+       * @path /users/{userId}/adCampaigns/{adCampaignId}
+       * @allow (list) Owner can list their own campaigns.
+       * @deny (create) Mismatched userId in payload.
+       * @principle Ensures ad campaigns are only managed by their creator.
+       */
+      match /adCampaigns/{adCampaignId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Rules for ad creatives nested under campaigns.
+         * @path /users/{userId}/adCampaigns/{adCampaignId}/adCreatives/{adCreativeId}
+         * @allow (get) Owner of the parent campaign can view creatives.
+         * @deny (delete) If the user is not the owner of the parent path.
+         * @principle Uses denormalized userId for authorization independence in deep nesting.
+         */
+        match /adCreatives/{adCreativeId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && request.resource.data.userId == userId;
+          allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Rules for AI Assistant configurations.
+       * @path /users/{userId}/aiAssistantConfigurations/{id}
+       * @allow (update) If user owns the assistant and userId remains unchanged.
+       * @deny (create) If userId is missing or incorrect.
+       * @principle Restricts AI agent setup to the specific academy owner.
+       */
+      match /aiAssistantConfigurations/{id} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Rules for specific channel (WhatsApp/etc) configurations.
+         * @path /users/{userId}/aiAssistantConfigurations/{id}/assistantChannelConfigurations/{chanId}
+         * @allow (create) If the channel is linked to the user's assistant via path.
+         * @deny (update) Attempting to modify settings of an agent the user doesn't own.
+         * @principle Deeply nested authorization relying on path parameters and denormalized UID.
+         */
+        match /assistantChannelConfigurations/{chanId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && request.resource.data.userId == userId;
+          allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Rules for AI Voice Agent configurations.
+       * @path /users/{userId}/voiceAgentConfigurations/{id}
+       * @allow (get) Owner can access voice agent scripts and settings.
+       * @deny (update) If existing owner check fails.
+       * @principle Secures voice agent identities and configuration scripts.
+       */
+      match /voiceAgentConfigurations/{id} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Rules for Lead data captured by the system.
+       * @path /users/{userId}/leads/{leadId}
+       * @allow (list) Owner can view all leads captured for their academy.
+       * @deny (create) If the lead is being assigned to a different user's path.
+       * @principle Protects lead PII by ensuring only the academy owner has access.
+       */
+      match /leads/{leadId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+  }
+}
