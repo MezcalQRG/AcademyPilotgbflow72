@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -15,8 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, Download, MessageSquare, Phone, MoreVertical, ArrowUpDown, Loader2, UserPlus } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LeadProfileDialog } from "@/components/leads/lead-profile-dialog";
-import { useCollection, useUser, useMemoFirebase, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection, serverTimestamp } from "firebase/firestore";
+import { InitializeLeadDialog } from "@/components/leads/initialize-lead-dialog";
+import { useCollection, useUser, useMemoFirebase, useFirestore } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 export default function LeadManagement() {
   const { user, isUserLoading } = useUser();
@@ -27,6 +29,7 @@ export default function LeadManagement() {
   
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isInitDialogOpen, setIsInitDialogOpen] = useState(false);
 
   // Memoize the collection reference
   const leadsRef = useMemoFirebase(() => {
@@ -68,23 +71,6 @@ export default function LeadManagement() {
     setIsProfileOpen(true);
   };
 
-  const handleAddSampleLead = () => {
-    if (!leadsRef) return;
-    addDocumentNonBlocking(leadsRef, {
-      firstName: "New",
-      lastName: "Prospect",
-      email: `prospect-${Date.now()}@example.com`,
-      phoneNumber: "+1 555-9999",
-      qualificationStatus: "New",
-      sourceType: "Manual",
-      sourceId: "system",
-      capturedAt: new Date().toISOString(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      userId: user?.uid,
-    });
-  };
-
   if (isUserLoading || isLeadsLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -101,7 +87,11 @@ export default function LeadManagement() {
           <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-2">Database: Live Tactical Analysis</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleAddSampleLead} variant="outline" className="rounded-none font-black uppercase tracking-widest text-xs px-6 border-primary text-primary hover:bg-primary hover:text-white">
+          <Button 
+            onClick={() => setIsInitDialogOpen(true)} 
+            variant="outline" 
+            className="rounded-none font-black uppercase tracking-widest text-xs px-6 border-primary text-primary hover:bg-primary hover:text-white"
+          >
             <UserPlus className="mr-2 h-4 w-4" /> Initialize Lead
           </Button>
           <Button className="bg-primary hover:bg-primary/90 rounded-none font-black uppercase tracking-widest text-xs px-8">
@@ -210,6 +200,11 @@ export default function LeadManagement() {
         lead={selectedLead} 
         isOpen={isProfileOpen} 
         onClose={() => setIsProfileOpen(false)} 
+      />
+
+      <InitializeLeadDialog 
+        isOpen={isInitDialogOpen} 
+        onOpenChange={setIsInitDialogOpen} 
       />
     </div>
   );
