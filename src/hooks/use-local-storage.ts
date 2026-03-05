@@ -1,21 +1,28 @@
-
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
+/**
+ * Hydration-safe Local Storage hook.
+ * Defers reading from localStorage until after component mount to prevent 
+ * server/client mismatch errors.
+ */
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === 'undefined') {
-      return initialValue;
-    }
+  // Use initialValue for the first render (both server and client)
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      if (item) {
+        setStoredValue(JSON.parse(item));
+      }
     } catch (error) {
-      console.error(error);
-      return initialValue;
+      console.error(`Error reading localStorage key "${key}":`, error);
     }
-  });
+  }, [key]);
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {
@@ -25,7 +32,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
-      console.error(error);
+      console.error(`Error saving to localStorage key "${key}":`, error);
     }
   };
 

@@ -29,20 +29,22 @@ export function GlobalChat() {
   const [question, setQuestion] = useState('');
   const [isPending, startTransition] = useTransition();
   
-  // Persistent history using Local Storage
+  // Persistent history using hydration-safe Local Storage
   const [history, setHistory] = useLocalStorage<any[]>('ai-tactical-history', []);
   
   // Local messages for the UI
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  // Sync LocalStorage history to UI messages on load
+  // Sync LocalStorage history to UI messages on mount/change
   useEffect(() => {
+    if (!history) return;
+    
     const formatted = history
       .filter(m => m.role !== 'system')
       .map((m, i) => ({
         id: `h-${i}`,
         role: m.role === 'user' ? 'user' : 'ai',
-        text: m.content[0].text || '',
+        text: m.content?.[0]?.text || '',
       }));
     setMessages(formatted);
   }, [history]);
@@ -61,7 +63,7 @@ export function GlobalChat() {
           message: userMessage.text 
         });
         
-        // Update both UI and persistent history
+        // Update persistent history
         setHistory(result.history);
       } catch (error) {
         console.error('Error getting AI response:', error);
