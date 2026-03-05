@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Academia Pilot | AI-Powered Commercial Automation',
@@ -12,6 +13,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -23,6 +26,12 @@ export default function RootLayout({
         <FirebaseClientProvider>
           {children}
         </FirebaseClientProvider>
+        {googleMapsKey && (
+          <Script
+            src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&libraries=places`}
+            strategy="beforeInteractive"
+          />
+        )}
       </body>
     </html>
   );

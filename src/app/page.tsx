@@ -35,7 +35,7 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-4">
             <Button asChild variant="ghost" className="hidden sm:inline-flex font-bold uppercase tracking-widest text-xs">
-              <Link href="/login">Find a School</Link>
+              <Link href="/locator">Find a School</Link>
             </Button>
             <Button asChild className="bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest px-6 rounded-none">
               <Link href="/register">Free Trial</Link>
@@ -70,8 +70,10 @@ export default function LandingPage() {
                 Join the largest and most successful Brazilian Jiu-Jitsu team in the world. Master the art, improve your health, and join our brotherhood.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 px-10 py-8 text-lg font-black uppercase tracking-widest rounded-none h-auto">
-                  Find Your School <ArrowRight className="ml-2 h-6 w-6" />
+                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 px-10 py-8 text-lg font-black uppercase tracking-widest rounded-none h-auto">
+                  <Link href="/locator">
+                    Find Your School <ArrowRight className="ml-2 h-6 w-6" />
+                  </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-10 py-8 text-lg font-black uppercase tracking-widest rounded-none h-auto bg-transparent">
                   Our Legacy
@@ -200,7 +202,7 @@ export default function LandingPage() {
             <div className="space-y-6">
               <h4 className="font-headline text-sm font-black uppercase tracking-widest">Connect</h4>
               <ul className="space-y-3 text-sm text-white/60">
-                <li><Link href="#" className="hover:text-primary">Find a School</Link></li>
+                <li><Link href="/locator" className="hover:text-primary">Find a School</Link></li>
                 <li><Link href="#" className="hover:text-primary">Franchising</Link></li>
                 <li><Link href="#" className="hover:text-primary">Support</Link></li>
                 <li><Link href="#" className="hover:text-primary">Contact</Link></li>
