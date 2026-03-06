@@ -28,12 +28,10 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative w-10 h-10">
-              <Image 
+              <img 
                 src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                 alt="Gracie Barra Logo" 
-                fill
-                className="object-contain"
-                priority
+                className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col leading-none">
@@ -216,11 +214,10 @@ export default function LandingPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <div className="relative w-8 h-8">
-                  <Image 
+                  <img 
                     src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                     alt="Gracie Barra Logo" 
-                    fill
-                    className="object-contain"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <span className="font-headline text-2xl font-black tracking-tighter uppercase italic">GRACIE BARRA AI</span>

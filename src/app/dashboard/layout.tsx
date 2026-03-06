@@ -3,7 +3,6 @@
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, Users, Megaphone, Settings, LogOut, Mic, MessageSquare, CalendarCheck } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { GlobalChat } from "@/components/chat/global-chat";
 
@@ -27,11 +26,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarHeader className="p-4 border-b border-border">
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-8 h-8 flex-shrink-0">
-                <Image 
+                <img 
                   src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                   alt="Logo" 
-                  fill
-                  className="object-contain"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="flex flex-col leading-none">

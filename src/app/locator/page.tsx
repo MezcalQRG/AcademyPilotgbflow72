@@ -1,7 +1,6 @@
 import { AcademyLocator } from "@/components/locator/academy-locator";
 import { ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Marquee from "@/components/landing/Marquee";
 
@@ -19,11 +18,10 @@ export default function LocatorPage() {
           <div className="h-10 w-px bg-border hidden sm:block" />
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10">
-              <Image 
+              <img 
                 src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                 alt="Logo" 
-                fill
-                className="object-contain"
+                className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col leading-none">

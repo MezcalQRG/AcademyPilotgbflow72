@@ -1,14 +1,12 @@
-
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Loader2, Zap } from 'lucide-react';
-import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
+import { Send, User, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ChatMessage {
   id: string;
@@ -25,7 +23,6 @@ interface LeadChatProps {
 export function LeadChat({ leadId, leadName }: LeadChatProps) {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  const [isSending, startTransition] = useTransition();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -54,7 +51,6 @@ export function LeadChat({ leadId, leadName }: LeadChatProps) {
     setChatHistory(prev => [...prev, newMessage]);
     setMessage('');
 
-    // Simulate lead response
     setTimeout(() => {
       const leadResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -115,12 +111,11 @@ export function LeadChat({ leadId, leadName }: LeadChatProps) {
                   </p>
                 </div>
                  {msg.sender === 'agent' && (
-                  <div className="h-8 w-8 rounded-none border border-primary bg-primary/5 flex-shrink-0 relative overflow-hidden">
-                    <Image 
+                  <div className="h-8 w-8 rounded-none border border-primary bg-primary/5 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                    <img 
                       src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                       alt="AI"
-                      fill
-                      className="object-contain p-1"
+                      className="w-6 h-6 object-contain"
                     />
                   </div>
                 )}

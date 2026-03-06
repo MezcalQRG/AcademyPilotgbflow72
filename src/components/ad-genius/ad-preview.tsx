@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Loader2, Check, Globe, Building, CalendarIcon } from "lucide-react";
+import { Send, Loader2, Check, Globe, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { publishCampaignAction } from "@/app/actions";
@@ -116,11 +116,15 @@ export default function AdPreview({ campaign, images, imageHashes, adAccountID, 
         <div className="border border-border rounded-none overflow-hidden bg-background">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
-                <div className="w-10 h-10 bg-primary flex items-center justify-center">
-                    <Building className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-primary flex items-center justify-center p-1.5">
+                    <img 
+                      src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
+                      alt="GB Shield"
+                      className="w-full h-full object-contain brightness-0 invert"
+                    />
                 </div>
                 <div>
-                    <p className="font-black uppercase italic text-sm leading-none">Academia Pilot</p>
+                    <p className="font-black uppercase italic text-sm leading-none">GRACIE BARRA AI</p>
                     <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground flex items-center gap-1">
                         Sponsored <Globe className="w-3 h-3"/>
                     </p>
@@ -148,7 +152,7 @@ export default function AdPreview({ campaign, images, imageHashes, adAccountID, 
           </Carousel>
           
           <div className="p-3 bg-secondary/10 flex justify-between items-center border-t border-border">
-            <span className="text-[10px] font-black uppercase tracking-widest">your-academy.com</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">graciebarra.com</span>
             <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-none font-bold uppercase text-[10px]" disabled={callToActionType === 'NONE'}>
                 {callToActionType !== 'NONE' ? callToActionType.replace(/_/g, ' ') : 'Learn More'}
             </Button>

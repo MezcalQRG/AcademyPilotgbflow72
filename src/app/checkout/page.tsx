@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState, useTransition, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PaymentMethodForm } from "@/components/leads/payment-method-form";
@@ -21,7 +21,6 @@ function CheckoutContent() {
 
   const handlePaymentSubmit = async (data: any) => {
     setIsProcessing(true);
-    // Simulated tactical handshake
     await new Promise((resolve) => setTimeout(resolve, 2000));
     
     toast({
@@ -30,7 +29,6 @@ function CheckoutContent() {
     });
     
     setIsProcessing(false);
-    // Return to base or dashboard
     router.push("/");
   };
 
@@ -58,15 +56,14 @@ function CheckoutContent() {
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="relative w-12 h-12">
-                <Image 
+                <img 
                   src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                   alt="Logo" 
-                  fill
-                  className="object-contain brightness-0 invert"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="font-headline text-3xl font-black uppercase italic tracking-tighter">GB AI</span>
+                <span className="font-headline text-3xl font-black uppercase italic tracking-tighter text-primary">GB AI</span>
                 <span className="font-headline text-[10px] font-bold tracking-[0.2em] uppercase opacity-60">Deployment Terminal</span>
               </div>
             </div>

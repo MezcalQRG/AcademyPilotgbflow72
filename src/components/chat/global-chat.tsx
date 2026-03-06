@@ -1,9 +1,7 @@
-
 "use client";
 
 import { useState, useTransition, useEffect } from 'react';
 import { Send, User, Loader2, RotateCcw } from 'lucide-react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -89,11 +87,10 @@ export function GlobalChat() {
           aria-label="Open Global Chat"
         >
           <div className="relative w-full h-full p-2 flex items-center justify-center">
-            <Image 
+            <img 
               src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
               alt="AI Assistant" 
-              fill
-              className="object-contain p-2"
+              className="w-full h-full object-contain"
             />
           </div>
         </Button>
@@ -128,12 +125,11 @@ export function GlobalChat() {
                   }`}
                 >
                   {msg.role === 'ai' && (
-                    <div className="h-8 w-8 rounded-none border border-primary bg-primary/5 flex-shrink-0 relative overflow-hidden">
-                      <Image 
+                    <div className="h-8 w-8 rounded-none border border-primary bg-primary/5 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                      <img 
                         src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                         alt="AI"
-                        fill
-                        className="object-contain p-1"
+                        className="w-6 h-6 object-contain"
                       />
                     </div>
                   )}
@@ -155,12 +151,11 @@ export function GlobalChat() {
               ))}
               {isPending && (
                 <div className="flex items-center space-x-2">
-                   <div className="h-8 w-8 rounded-none border border-primary bg-primary/5 flex-shrink-0 relative overflow-hidden">
-                      <Image 
+                   <div className="h-8 w-8 rounded-none border border-primary bg-primary/5 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                      <img 
                         src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                         alt="AI"
-                        fill
-                        className="object-contain p-1"
+                        className="w-6 h-6 object-contain"
                       />
                     </div>
                   <div className="rounded-none border border-border bg-secondary/5 px-4 py-2">

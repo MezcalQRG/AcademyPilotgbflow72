@@ -5,7 +5,6 @@ import { LiveClock } from '@/components/checkin/live-clock';
 import { ClassQueue } from '@/components/checkin/class-queue';
 import { CheckInQR } from '@/components/checkin/check-in-qr';
 import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
 
 function CheckInDisplayContent() {
   const { activeClass } = useCheckIn();
@@ -14,13 +13,13 @@ function CheckInDisplayContent() {
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <header className="h-20 border-b-4 border-border bg-card/50 flex items-center px-12 justify-between">
         <div className="flex items-center gap-4">
-          <Image 
-            src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
-            alt="Logo" 
-            width={32} 
-            height={32} 
-            className="h-8 w-8"
-          />
+          <div className="relative w-10 h-10">
+            <img 
+              src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
+              alt="Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
           <div className="flex flex-col leading-none">
             <span className="font-headline text-3xl font-black tracking-tighter uppercase italic text-primary">GRACIE BARRA AI</span>
             <span className="font-headline text-sm font-bold tracking-widest uppercase">Live Dispatch Dashboard</span>
