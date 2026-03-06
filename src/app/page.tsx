@@ -152,8 +152,8 @@ export default function LandingPage() {
               </div>
               <div className="flex gap-4">
                 <FreeTrialDialog>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-16 px-10 shadow-2xl">
-                    Request Trial Link
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full font-black uppercase italic tracking-tighter w-36 h-36 flex flex-col items-center justify-center text-center leading-none shadow-2xl border-4 border-white/10 transition-transform hover:scale-110 text-lg">
+                    FREE<br/>TRIAL
                   </Button>
                 </FreeTrialDialog>
               </div>
