@@ -228,11 +228,11 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-black text-white border-t border-white/10 py-20 relative overflow-hidden">
-        {/* Master silhouette revealed from bottom-left */}
+        {/* Master silhouette revealed from top-left to overlap section above */}
         <ScrollRevealImage 
           src="https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png"
           alt="Gracie Barra Master Silhouette"
-          position="bottom-left"
+          position="top-left"
           maxWidth="max-w-xl"
         />
         

@@ -7,12 +7,12 @@ import { cn } from '@/lib/utils';
 /**
  * ScrollRevealImage - A tactical component that reveals an image with 
  * a fade-in and slide-up effect triggered by scroll visibility.
- * Can be positioned bottom-right or bottom-left.
+ * Can be positioned bottom-right, bottom-left, or top-left (with overlap).
  */
 interface ScrollRevealImageProps {
   src: string;
   alt: string;
-  position?: 'bottom-right' | 'bottom-left';
+  position?: 'bottom-right' | 'bottom-left' | 'top-left';
   maxWidth?: string;
 }
 
@@ -50,16 +50,39 @@ export function ScrollRevealImage({
     };
   }, []);
 
+  // Determine the base classes for the specific tactical positions
+  const getPositionClasses = () => {
+    switch (position) {
+      case 'top-left':
+        return "top-0 left-0";
+      case 'bottom-left':
+        return "bottom-0 left-0";
+      case 'bottom-right':
+      default:
+        return "bottom-0 right-0";
+    }
+  };
+
+  // Determine the target transform state
+  // top-left uses a negative Y translation to overlap the section above
+  const getTransformClasses = () => {
+    if (!isVisible) return "opacity-0 translate-y-[50px]";
+    
+    if (position === 'top-left') {
+      return "opacity-100 -translate-y-1/2";
+    }
+    
+    return "opacity-100 translate-y-0";
+  };
+
   return (
     <div
       ref={ref}
       className={cn(
-        "absolute bottom-0 w-full transition-all duration-[800ms] ease-out pointer-events-none",
-        position === 'bottom-right' ? "right-0" : "left-0",
+        "absolute w-full transition-all duration-[800ms] ease-out pointer-events-none z-0",
+        getPositionClasses(),
         maxWidth,
-        isVisible 
-          ? "opacity-100 translate-y-0" 
-          : "opacity-0 translate-y-[50px]"
+        getTransformClasses()
       )}
     >
       <div className="relative aspect-[1200/600] w-full">
