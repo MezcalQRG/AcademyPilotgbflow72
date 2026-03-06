@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/" className="flex items-center gap-2">
               <Zap className="h-6 w-6 text-primary" />
               <div className="flex flex-col leading-none">
-                <span className="font-headline text-lg font-black tracking-tighter uppercase italic text-primary">Academia</span>
+                <span className="font-headline text-lg font-black tracking-tighter uppercase italic text-primary">GRACIE BARRA AI</span>
                 <span className="font-headline text-[10px] font-bold tracking-widest uppercase text-foreground">Pilot</span>
               </div>
             </Link>

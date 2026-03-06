@@ -31,7 +31,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <Zap className="h-10 w-10 text-primary" />
             <div className="flex flex-col leading-none">
-              <span className="font-headline text-2xl font-black uppercase italic text-primary">Academia</span>
+              <span className="font-headline text-2xl font-black uppercase italic text-primary">GRACIE BARRA AI</span>
               <span className="font-headline text-sm font-bold tracking-widest uppercase text-foreground">Pilot System</span>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function LandingPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-2">
                 <Zap className="h-8 w-8 text-primary" />
-                <span className="font-headline text-2xl font-black tracking-tighter uppercase italic">Academia</span>
+                <span className="font-headline text-2xl font-black tracking-tighter uppercase italic">GRACIE BARRA AI</span>
               </div>
               <p className="text-white/40 text-sm leading-relaxed">
                 Dedicated to the development of Jiu-Jitsu for everyone. Carrying on the legacy through structured teaching and strong community values.
@@ -237,7 +237,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/30 font-bold uppercase tracking-widest">
-            <p>© 2024 Academia Pilot System. All Rights Reserved.</p>
+            <p>© 2024 GRACIE BARRA AI Pilot System. All Rights Reserved.</p>
             <div className="flex gap-8">
               <Link href="#" className="hover:text-white">Privacy</Link>
               <Link href="#" className="hover:text-white">Terms</Link>

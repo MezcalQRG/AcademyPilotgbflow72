@@ -17,7 +17,7 @@ function CheckInDisplayContent() {
         <div className="flex items-center gap-4">
           <Zap className="h-8 w-8 text-primary" />
           <div className="flex flex-col leading-none">
-            <span className="font-headline text-3xl font-black tracking-tighter uppercase italic text-primary">Academia</span>
+            <span className="font-headline text-3xl font-black tracking-tighter uppercase italic text-primary">GRACIE BARRA AI</span>
             <span className="font-headline text-sm font-bold tracking-widest uppercase">Live Dispatch Dashboard</span>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import { AcademyLocator } from "@/components/locator/academy-locator";
 import { Zap, ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +19,7 @@ export default function LocatorPage() {
           <div className="flex items-center gap-3">
             <Zap className="h-8 w-8 text-primary" />
             <div className="flex flex-col leading-none">
-              <span className="font-headline text-2xl font-black tracking-tighter uppercase italic text-primary">Academia</span>
+              <span className="font-headline text-2xl font-black tracking-tighter uppercase italic text-primary">GRACIE BARRA AI</span>
               <span className="font-headline text-[10px] font-bold tracking-widest uppercase">Locator Link</span>
             </div>
           </div>
@@ -54,7 +55,7 @@ export default function LocatorPage() {
              <span className="font-headline font-black uppercase italic tracking-tighter text-xl">Pilot System</span>
           </div>
           <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-            © 2024 GRACIE BARRA HQ // SECTOR: LOCATOR
+            © 2024 GRACIE BARRA AI // SECTOR: LOCATOR
           </div>
         </div>
       </footer>
