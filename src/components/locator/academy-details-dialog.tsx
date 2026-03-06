@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -70,12 +71,12 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
             src={photoUrl}
             alt={academy.name}
             fill
-            className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
+            className="object-cover hover:scale-105 transition-all duration-700"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
           <div className="absolute bottom-6 left-8 right-8">
-            <h2 className="text-3xl font-headline font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-lg">
+            <h2 className="text-3xl font-headline text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-lg">
               {academy.name}
             </h2>
             <div className="flex items-center gap-3 mt-3">
@@ -117,9 +118,14 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
                   <Zap className="absolute top-0 right-0 h-32 w-32 text-primary opacity-5 rotate-12 -translate-y-8 translate-x-8" />
                   <div className="space-y-2 relative z-10">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Mission: First Visit Protocol</p>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-6xl font-black text-primary leading-none tracking-tighter italic">FREE</span>
-                      <span className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] italic">INTRO SESSION</span>
+                    <div className="flex items-center gap-6">
+                      <div className="relative">
+                        <span className="text-4xl font-black text-muted-foreground opacity-40 italic line-through decoration-primary decoration-4 leading-none">$20</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-7xl font-black text-primary leading-none tracking-tighter italic drop-shadow-sm">FREE</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] italic">INTRO SESSION</span>
+                      </div>
                     </div>
                   </div>
 
@@ -131,7 +137,7 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
                     onClick={() => setShowTrialForm(true)}
                     className="w-full h-16 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest italic text-sm rounded-none shadow-xl shadow-primary/20 transition-all relative z-10"
                   >
-                    REQUEST TACTICAL ENROLLMENT
+                    REQUEST FREE TRIAL CLASS
                     <Send className="ml-3 h-5 w-5" />
                   </Button>
                 </div>
@@ -148,7 +154,7 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
           ) : (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="space-y-2 border-l-4 border-primary pl-6">
-                <h3 className="text-2xl font-headline font-black uppercase italic tracking-tighter text-primary">Unit Provisioning</h3>
+                <h3 className="text-2xl font-headline text-2xl font-black uppercase italic tracking-tighter text-primary">Unit Provisioning</h3>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Register credentials to schedule your first introductory engagement.</p>
               </div>
 
