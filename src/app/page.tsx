@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FreeTrialDialog } from '@/components/landing/free-trial-dialog';
+import Marquee from '@/components/landing/Marquee';
 import { 
   Trophy, 
   Users, 
@@ -89,7 +90,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
+        <Marquee />
         {/* Programs Section */}
         <section id="programs" className="py-24 bg-white">
           <div className="container mx-auto px-4">
