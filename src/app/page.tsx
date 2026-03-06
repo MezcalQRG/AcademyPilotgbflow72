@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -142,7 +143,7 @@ export default function LandingPage() {
                   <span className="text-primary">Presence</span>
                 </h2>
                 <p className="text-xl text-muted-foreground font-bold uppercase italic tracking-tight">
-                  Step onto the mats and start your journey with the world&apos;s most successful team.
+                  Step onto the mats and start your journey with the world's most successful team.
                 </p>
               </div>
               <div className="flex gap-4">
@@ -201,8 +202,16 @@ export default function LandingPage() {
         <Marquee />
 
         {/* Global Reach Section */}
-        <section className="py-24 bg-black text-white text-center">
-          <div className="container mx-auto px-4 space-y-12">
+        <section className="py-24 bg-black text-white text-center relative overflow-hidden">
+          {/* Master silhouette revealed from bottom-left */}
+          <ScrollRevealImage 
+            src="https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png"
+            alt="Gracie Barra Master Silhouette"
+            position="bottom-left"
+            maxWidth="max-w-xl"
+          />
+          
+          <div className="container mx-auto px-4 space-y-12 relative z-10">
             <div className="max-w-3xl mx-auto space-y-4">
               <History className="h-12 w-12 text-primary mx-auto mb-4" />
               <h2 className="font-headline text-5xl font-black uppercase tracking-tighter italic">One Team. One Shield.</h2>
@@ -228,14 +237,6 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-black text-white border-t border-white/10 py-20 relative overflow-hidden">
-        {/* Master silhouette revealed from top-left to overlap section above */}
-        <ScrollRevealImage 
-          src="https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png"
-          alt="Gracie Barra Master Silhouette"
-          position="top-left"
-          maxWidth="max-w-xl"
-        />
-        
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
