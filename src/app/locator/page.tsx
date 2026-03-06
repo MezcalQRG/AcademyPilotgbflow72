@@ -32,13 +32,13 @@ export default function LocatorPage() {
         <div className="container mx-auto px-4 space-y-16">
           <div className="max-w-3xl border-l-8 border-primary pl-10 space-y-4">
             <div className="inline-block bg-primary text-white px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] italic mb-2">
-              Mission: Strategic Selection
+              MISSION: FIND YOUR TEAM
             </div>
             <h1 className="text-6xl md:text-8xl font-headline font-black uppercase italic tracking-tighter leading-none">
-              Unit <br /><span className="text-primary">Discovery</span> Hub
+              Locate the Nearest <br /><span className="text-primary">Jiu-Jitsu</span> Academy
             </h1>
             <p className="text-xl text-muted-foreground font-bold uppercase italic tracking-tight max-w-xl">
-              Locate certified training units across the global matrix. Access trial protocols and established command links.
+              Find a certified Gracie Barra training center in your area. Join our global brotherhood and start your journey with a free trial class today.
             </p>
           </div>
 
