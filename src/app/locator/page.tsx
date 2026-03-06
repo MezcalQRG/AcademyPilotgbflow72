@@ -3,6 +3,7 @@ import { ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import Marquee from "@/components/landing/Marquee";
 
 export default function LocatorPage() {
   return (
@@ -48,6 +49,10 @@ export default function LocatorPage() {
             <p className="text-xl text-muted-foreground font-bold uppercase italic tracking-tight max-w-xl">
               Find a certified Gracie Barra training center in your area. Join our global brotherhood and start your journey with a free trial class today.
             </p>
+          </div>
+
+          <div className="py-4">
+            <Marquee variant="red" />
           </div>
 
           <AcademyLocator />
