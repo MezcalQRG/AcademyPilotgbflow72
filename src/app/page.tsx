@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FreeTrialDialog } from '@/components/landing/free-trial-dialog';
-import { PaymentGatewayDialog } from '@/components/landing/payment-gateway-dialog';
 import Marquee from '@/components/landing/Marquee';
 import { ScrollRevealImage } from '@/components/landing/scroll-reveal-image';
 import { 
@@ -181,7 +180,7 @@ export default function LandingPage() {
         <section className="py-24 bg-white text-black text-center relative overflow-hidden">
           <ScrollRevealImage 
             src="https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png"
-            alt="Gracie Barra Master Silhouette"
+            alt="Gracie Barra Team Silhouette"
             position="bottom-left"
             maxWidth="max-w-xl"
           />
@@ -280,11 +279,11 @@ function ProgramCard({ title, level, description, details, featured = false }: {
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
       <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-muted-foreground'}`}>{description}</p>
       <div className="mt-auto pt-8">
-        <PaymentGatewayDialog planTitle={title} planDetails={details}>
-          <Button variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-black hover:bg-black hover:text-white bg-transparent'}`}>
+        <Button asChild variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-black hover:bg-black hover:text-white bg-transparent'}`}>
+          <Link href={`/checkout?plan=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}`}>
             Access Directive
-          </Button>
-        </PaymentGatewayDialog>
+          </Link>
+        </Button>
       </div>
     </div>
   );
