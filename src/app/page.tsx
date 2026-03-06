@@ -155,7 +155,11 @@ export default function LandingPage() {
             </div>
           </div>
           {/* Silhouette pinned to bottom right */}
-          <ScrollRevealImage />
+          <ScrollRevealImage 
+            src="https://graciebarra.com/wp-content/uploads/2025/03/call_to_action-IMG.png"
+            alt="Gracie Barra Team Silhouette"
+            position="bottom-right"
+          />
         </section>
 
         <Marquee />
@@ -223,8 +227,16 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black text-white border-t border-white/10 py-20">
-        <div className="container mx-auto px-4">
+      <footer className="bg-black text-white border-t border-white/10 py-20 relative overflow-hidden">
+        {/* Master silhouette revealed from bottom-left */}
+        <ScrollRevealImage 
+          src="https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png"
+          alt="Gracie Barra Master Silhouette"
+          position="bottom-left"
+          maxWidth="max-w-xl"
+        />
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-2">
