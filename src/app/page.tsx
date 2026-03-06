@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FreeTrialDialog } from '@/components/landing/free-trial-dialog';
+import { PaymentGatewayDialog } from '@/components/landing/payment-gateway-dialog';
 import Marquee from '@/components/landing/Marquee';
 import { ScrollRevealImage } from '@/components/landing/scroll-reveal-image';
 import { 
@@ -117,18 +117,21 @@ export default function LandingPage() {
               <ProgramCard 
                 title="Plan Semestral"
                 level="Ciclo: 6 Meses"
-                description="Inversión Total: $900. Forma de Pago: Un solo pago de $900. Regalo: Uniforme No-Gi."
+                description="Medium-term tactical commitment. Secure your training cycle with a single payment and tactical bonus."
+                details="Inversión Total: $900. Forma de Pago: Un solo pago de $900. Regalo: Uniforme No-Gi."
               />
               <ProgramCard 
                 title="Plan Anual"
                 level="Ciclo: 12 Meses"
-                description="Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi."
+                description="Maximum strategic commitment. Optimize your mission with phased payments and complete equipment deployment."
+                details="Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi."
                 featured
               />
               <ProgramCard 
                 title="Pago por Clase"
                 level="Ciclo: Por Sesión"
-                description="Costo: $20 cada vez que asistas. Beneficio: Préstamo de uniforme oficial incluido."
+                description="Flexible engagement protocol. Access individual training sessions with official gear rental included."
+                details="Costo: $20 cada vez que asistas. Beneficio: Préstamo de uniforme oficial incluido."
               />
             </div>
 
@@ -158,7 +161,7 @@ export default function LandingPage() {
               </div>
               <div className="flex gap-4">
                 <FreeTrialDialog>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full font-black uppercase italic tracking-tighter w-36 h-36 flex flex-col items-center justify-center text-center leading-none shadow-2xl border-4 border-white/10 transition-transform hover:scale-110 text-lg">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full font-black uppercase italic tracking-tighter w-36 h-36 flex flex-col items-center justify-center text-center leading-none shadow-2xl border-4 border-white/10 transition-transform hover:scale-110 text-lg text-white">
                     FREE<br/>TRIAL
                   </Button>
                 </FreeTrialDialog>
@@ -268,7 +271,7 @@ export default function LandingPage() {
   );
 }
 
-function ProgramCard({ title, level, description, featured = false }: { title: string, level: string, description: string, featured?: boolean }) {
+function ProgramCard({ title, level, description, details, featured = false }: { title: string, level: string, description: string, details: string, featured?: boolean }) {
   return (
     <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-black ${featured ? 'bg-secondary text-white scale-105 z-10 shadow-2xl' : 'bg-white text-black hover:bg-muted'}`}>
       <div className={`text-[10px] font-black uppercase tracking-[0.3em] ${featured ? 'text-primary' : 'text-primary'}`}>
@@ -277,9 +280,11 @@ function ProgramCard({ title, level, description, featured = false }: { title: s
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
       <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-muted-foreground'}`}>{description}</p>
       <div className="mt-auto pt-8">
-        <Button variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-black hover:bg-black hover:text-white bg-transparent'}`}>
-          Access Directive
-        </Button>
+        <PaymentGatewayDialog planTitle={title} planDetails={details}>
+          <Button variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-black hover:bg-black hover:text-white bg-transparent'}`}>
+            Access Directive
+          </Button>
+        </PaymentGatewayDialog>
       </div>
     </div>
   );
