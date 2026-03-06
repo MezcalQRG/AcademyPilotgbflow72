@@ -18,7 +18,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,6 @@ const formSchema = z.object({
   lastName: z.string().min(2, "Required"),
   email: z.string().email("Invalid email"),
   phoneNumber: z.string().min(10, "Required"),
-  trialTime: z.string().optional(),
 });
 
 export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) {
@@ -53,7 +51,6 @@ export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean
       lastName: "",
       email: "",
       phoneNumber: "",
-      trialTime: "",
     },
   });
 
@@ -74,7 +71,7 @@ export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean
       billingDay: Math.floor(Math.random() * 28) + 1, // Random default billing day
       paymentHistory: [],
       savedPaymentMethods: [],
-      notes: values.trialTime ? `Scheduled trial session for: ${values.trialTime}` : "Initial enrollment complete. Tactical briefing pending.",
+      notes: "Initial enrollment complete. Tactical briefing pending.",
     };
 
     addDocumentNonBlocking(leadsRef, leadData);
@@ -157,21 +154,6 @@ export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean
                   <FormControl>
                     <Input placeholder="+1 555-0000" {...field} className="rounded-none border-2 font-bold" />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="trialTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary">Trial Session Time (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} className="rounded-none border-2 border-primary/50 font-bold" />
-                  </FormControl>
-                  <FormDescription className="text-[9px] uppercase font-bold">Designate the hour for the introductory engagement if confirmed</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
