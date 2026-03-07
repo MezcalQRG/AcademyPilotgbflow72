@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef } from "react";
@@ -7,7 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -97,7 +96,6 @@ export default function StoreAssemble() {
         { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", x: 0, ease: "power3.out", duration: 1.2 }
       );
 
-      // Only fly past if it's not the last item
       if (index < items.length - 1) {
         tl.to(ref, {
           x: index % 2 === 0 ? -1200 : 1200,
@@ -119,7 +117,7 @@ export default function StoreAssemble() {
         <div className="flex items-center gap-4">
           <div className="relative w-10 h-10">
             <img 
-              src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
+              src="https://graciebarrapilot.s3.us-east-1.amazonaws.com/Generated_Image_March_06__2026_-_12_01AM-removebg-preview.png" 
               alt="GB Shield" 
               className="w-full h-full object-contain"
             />
@@ -136,17 +134,14 @@ export default function StoreAssemble() {
         </Button>
       </div>
 
-      {/* Cinematic Vignette Shadows */}
       <div className="absolute inset-0 z-50 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
       <div className="absolute inset-0 z-50 pointer-events-none bg-gradient-to-b from-black/20 via-transparent to-black/40" />
 
-      {/* Background Matrix Grid */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
         <div className="h-full w-full absolute top-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
       </div>
 
-      {/* 1. MASTER TITLE SECTION */}
       <div ref={titleRef} className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 will-change-transform perspective-element">
         <h1 className="text-center">
           <span className="block text-[10vw] font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-[0_0_50px_rgba(255,255,255,0.2)]">
@@ -158,7 +153,6 @@ export default function StoreAssemble() {
         </h1>
       </div>
 
-      {/* 2. ARMOR UNITS */}
       {items.map((item, index) => {
         const image = PlaceHolderImages.find(img => img.id === item.id);
         return (
@@ -179,10 +173,6 @@ export default function StoreAssemble() {
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                  <div className="absolute bottom-6 left-6 flex items-center gap-2 bg-black/40 px-3 py-1 border border-white/10 backdrop-blur-sm">
-                    {item.icon}
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{item.tag}</span>
-                  </div>
                 </div>
                 <div className="md:w-1/2 p-12 flex flex-col justify-center space-y-8">
                   <div className="space-y-2 border-l-8 border-primary pl-8">

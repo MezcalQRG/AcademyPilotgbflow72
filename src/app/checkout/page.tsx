@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -70,9 +69,9 @@ function CheckoutContent() {
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-primary flex items-center justify-center p-2 border-2 border-border shadow-lg">
                 <img 
-                  src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
+                  src="https://graciebarrapilot.s3.us-east-1.amazonaws.com/Generated_Image_March_06__2026_-_12_01AM-removebg-preview.png" 
                   alt="Logo" 
-                  className="w-full h-full object-contain brightness-0 invert"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="flex flex-col leading-none">
@@ -82,7 +81,7 @@ function CheckoutContent() {
             </div>
             
             <div className="relative">
-              <div className="space-y-4 border-l-8 border-primary pl-8">
+              <div className="space-y-4 border-l-8 border-primary pl-8 relative">
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">
                   {itemType === 'uniform' ? 'Armory Acquisition Protocol' : 'Operational Protocol Selection'}
                 </p>
@@ -92,16 +91,20 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              {/* Tactical Equipment Preview Overlay */}
-              {itemType === 'uniform' && (
-                <div className="absolute -bottom-24 -right-12 w-64 h-64 pointer-events-none hidden lg:block animate-in fade-in slide-in-from-right-8 duration-1000">
-                  <Image 
-                    src="https://graciebarrapilot.s3.us-east-1.amazonaws.com/Kiminiblanco.png" 
-                    alt="Tactical Uniform" 
-                    width={256}
-                    height={256}
-                    className="object-contain drop-shadow-[0_0_30px_rgba(225,29,72,0.4)]"
-                  />
+              {/* Enhanced Centered Visualization Block */}
+              {itemType === 'uniform' && tacticalAsset && (
+                <div className="mt-8 space-y-4 border-l-8 border-primary pl-8 relative h-64 bg-black/20 border-2 border-white/5 flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_20px,rgba(255,255,255,0.05)_20px,rgba(255,255,255,0.05)_21px)]" />
+                  </div>
+                  <div className="relative w-48 h-48 animate-in fade-in zoom-in-95 duration-700">
+                    <Image 
+                      src={tacticalAsset.imageUrl} 
+                      alt="Unit Preview" 
+                      fill 
+                      className="object-contain drop-shadow-[0_0_20px_rgba(225,29,72,0.4)]"
+                    />
+                  </div>
                 </div>
               )}
             </div>

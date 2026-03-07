@@ -1,40 +1,58 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-bjj",
-      "description": "High-intensity Brazilian Jiu-Jitsu training session",
-      "imageUrl": "https://picsum.photos/seed/gbhero/1200/800",
+      "id": "hero-flythrough-logo",
+      "description": "High resolution Gracie Barra transparent logo for flythrough",
+      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/Generated_Image_March_06__2026_-_12_01AM-removebg-preview.png",
+      "imageHint": "gracie barra logo flythrough"
+    },
+    {
+      "id": "hero-red-letters",
+      "description": "High definition 3D shaped GRACIE BARRA AI letters",
+      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/the_letters__GRACIE_BARRA_AI__on_big_with_no_background__3d_shaped-removebg-preview.png",
+      "imageHint": "gracie barra 3d letters"
+    },
+    {
+      "id": "fighter1",
+      "description": "Call to action Gracie Barra fighter image",
+      "imageUrl": "https://graciebarra.com/wp-content/uploads/2025/03/call_to_action-IMG.png",
+      "imageHint": "jiu-jitsu fighter"
+    },
+    {
+      "id": "fighter2",
+      "description": "Gracie Barra DSC fighter image",
+      "imageUrl": "https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png",
       "imageHint": "jiu-jitsu training"
     },
     {
-      "id": "jiu-jitsu-class",
-      "description": "Clean martial arts academy mats with students in gis",
-      "imageUrl": "https://picsum.photos/seed/gbclass/800/600",
-      "imageHint": "martial arts class"
+      "id": "cinematic-bg",
+      "description": "Dark cinematic training ground",
+      "imageUrl": "https://picsum.photos/seed/42/1920/1080",
+      "imageHint": "dark gym"
     },
     {
-      "id": "bjj-instructor",
-      "description": "Professional BJJ instructor teaching techniques",
-      "imageUrl": "https://picsum.photos/seed/gbteach/600/400",
-      "imageHint": "martial arts instructor"
+      "id": "gb-kimono-white",
+      "description": "Official Gracie Barra White Kimono",
+      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/Kiminiblanco.png",
+      "imageHint": "white jiu jitsu kimono"
     },
     {
-      "id": "agent1",
-      "description": "Tactical AI Agent Avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1633957897986-70e83293f3ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "robot avatar"
+      "id": "gb-kimono-blue",
+      "description": "Official Gracie Barra Blue Kimono",
+      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/kimonoazul.png",
+      "imageHint": "blue jiu jitsu kimono"
     },
     {
-      "id": "agent2",
-      "description": "Tactical AI Agent Avatar 2",
-      "imageUrl": "https://images.unsplash.com/photo-1732020858816-93c130ab8f49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "robot avatar"
+      "id": "gb-rashguard-white",
+      "description": "Official Gracie Barra White Rashguard",
+      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/gbrashwhite.png",
+      "imageHint": "white jiu jitsu rashguard"
     },
     {
-      "id": "agent3",
-      "description": "Tactical AI Agent Avatar 3",
-      "imageUrl": "https://images.unsplash.com/photo-1625314887424-9f190599bd56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "robot avatar"
+      "id": "gb-shorts",
+      "description": "Official Gracie Barra Training Shorts",
+      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/gbshort.png",
+      "imageHint": "jiu jitsu shorts"
     }
   ]
 }
