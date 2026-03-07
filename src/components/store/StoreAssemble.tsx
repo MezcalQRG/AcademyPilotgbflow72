@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Marquee from "@/components/landing/Marquee";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -19,6 +20,8 @@ export default function StoreAssemble() {
   const shieldRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const overlaysRef = useRef<HTMLDivElement>(null);
+  const topMarqueeRef = useRef<HTMLDivElement>(null);
+  const bottomMarqueeRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const items = [
@@ -91,7 +94,7 @@ export default function StoreAssemble() {
       { scale: 1, opacity: 1, filter: "blur(0px)", z: 0, ease: "power2.out", duration: 1, force3D: true }
     );
 
-    // Fade out title AND the tunnel overlays (middle light/side shades)
+    // Fade out title AND the tunnel overlays, and fade IN marquees
     tl.to([titleRef.current, overlaysRef.current], {
       scale: (i) => i === 0 ? 10 : 1, // only title scales up
       opacity: 0,
@@ -102,7 +105,12 @@ export default function StoreAssemble() {
       force3D: true
     }, "+=0.5");
 
-    // 3. ITEMS ASSEMBLY (Now in a clean environment)
+    tl.to([topMarqueeRef.current, bottomMarqueeRef.current], {
+      opacity: 1,
+      duration: 0.5,
+    }, "<"); // Start with title fade out
+
+    // 3. ITEMS ASSEMBLY (Now in a clean environment with marquees)
     items.forEach((item, index) => {
       const ref = itemRefs.current[index];
       if (!ref) return;
@@ -149,6 +157,16 @@ export default function StoreAssemble() {
             <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">ABORT TO BASE</span><span className="sm:hidden">ABORT</span>
           </Link>
         </Button>
+      </div>
+
+      {/* Top Marquee (manifests after titles) */}
+      <div ref={topMarqueeRef} className="absolute top-20 md:top-24 left-0 w-full z-[90] opacity-0 pointer-events-none">
+        <Marquee variant="black" />
+      </div>
+
+      {/* Bottom Marquee / Footer (manifests after titles) */}
+      <div ref={bottomMarqueeRef} className="absolute bottom-0 left-0 w-full z-[90] opacity-0 pointer-events-none">
+        <Marquee variant="black" />
       </div>
 
       {/* Cinematic Overlays (Targeted for removal after title) */}
