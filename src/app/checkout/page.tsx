@@ -10,6 +10,7 @@ import { PaymentMethodForm } from "@/components/leads/payment-method-form";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck, Zap, CreditCard, ArrowLeft } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 function CheckoutContent() {
@@ -47,16 +48,16 @@ function CheckoutContent() {
       {/* Left Sector: Intelligence Briefing */}
       <div className="md:w-1/2 bg-secondary p-12 text-white flex flex-col justify-between relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-border">
         {/* Background Asset Bleed */}
-        <div className="absolute inset-0 z-0 opacity-20 grayscale">
+        <div className="absolute inset-0 z-0 opacity-40">
           {tacticalAsset && (
             <Image 
               src={tacticalAsset.imageUrl} 
               alt="Mission Asset" 
               fill 
-              className="object-cover"
+              className={cn("object-cover", itemType === 'uniform' && "object-contain p-12")}
             />
           )}
-          <div className="absolute inset-0 bg-secondary/80" />
+          <div className="absolute inset-0 bg-secondary/60" />
         </div>
 
         <div className="relative z-10 space-y-12">

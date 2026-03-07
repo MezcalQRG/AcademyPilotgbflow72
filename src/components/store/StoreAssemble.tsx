@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,11 +17,46 @@ gsap.registerPlugin(ScrollTrigger);
 export default function StoreAssemble() {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
-  const item1Ref = useRef<HTMLDivElement>(null);
-  const item2Ref = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const kimonoImg = PlaceHolderImages.find(img => img.id === 'gb-kimono');
-  const nogiImg = PlaceHolderImages.find(img => img.id === 'gb-nogi');
+  const items = [
+    {
+      id: 'gb-kimono-blue',
+      name: 'GB PRO KIMONO BLUE',
+      price: '120',
+      description: 'Engineered for maximum durability and tactical mobility. The official blue competition armor.',
+      details: 'Official competition-ready Gracie Barra Kimono in Royal Blue. Durable pearl weave with reinforced stitching.',
+      icon: <ShieldCheck className="text-primary h-5 w-5" />,
+      tag: 'OFFICIAL COMMAND ISSUE'
+    },
+    {
+      id: 'gb-rashguard-white',
+      name: 'GB TACTICAL RASHGUARD',
+      price: '60',
+      description: 'High-compression moisture-wicking technology. Optimized for high-intensity training.',
+      details: 'White tactical rashguard with full GB identification. Compressed fit for superior performance.',
+      icon: <Zap className="text-primary h-5 w-5" />,
+      tag: 'STEALTH LAYER'
+    },
+    {
+      id: 'gb-shorts',
+      name: 'GB TRAINING SHORTS',
+      price: '50',
+      description: 'Lightweight and durable grappling shorts. Full range of motion for elite movement.',
+      details: 'Tactical shorts designed for Brazilian Jiu-Jitsu. Reinforced seams and flexible material.',
+      icon: <Zap className="text-primary h-5 w-5" />,
+      tag: 'AGILITY COMPONENT'
+    },
+    {
+      id: 'gb-kimono-white',
+      name: 'GB PRO KIMONO WHITE',
+      price: '120',
+      description: 'The classic white uniform for the traditional martial artist. Unmatched quality.',
+      details: 'Official competition-ready Gracie Barra Kimono. Premium white pearl weave construction.',
+      icon: <ShieldCheck className="text-primary h-5 w-5" />,
+      tag: 'LEGACY TRADITION'
+    }
+  ];
 
   useGSAP(() => {
     if (!containerRef.current) return;
@@ -30,20 +65,19 @@ export default function StoreAssemble() {
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "+=500%", // Extended for individual item focus
+        end: `+=${(items.length + 1) * 150}%`,
         pin: true,
         scrub: 1.5,
         anticipatePin: 1,
       },
     });
 
-    // 1. MISSION TITLE ASSEMBLY (Starts large/blurry in background, flies forward)
+    // 1. MASTER TITLE SECTION
     tl.fromTo(titleRef.current,
       { scale: 0.1, opacity: 0, filter: "blur(20px)", z: -1000 },
       { scale: 1, opacity: 1, filter: "blur(0px)", z: 0, ease: "power2.out", duration: 1 }
     );
 
-    // 2. TITLE DISSOLVE (Flies past the viewer)
     tl.to(titleRef.current, {
       scale: 15,
       opacity: 0,
@@ -53,33 +87,30 @@ export default function StoreAssemble() {
       duration: 1
     }, "+=0.5");
 
-    // 3. ITEM 1: KIMONO ASSEMBLY
-    tl.fromTo(item1Ref.current,
-      { scale: 0.2, opacity: 0, z: -800, filter: "blur(20px)" },
-      { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", ease: "power3.out", duration: 1.2 }
-    );
+    // 2. ITEMS ASSEMBLY
+    items.forEach((item, index) => {
+      const ref = itemRefs.current[index];
+      if (!ref) return;
 
-    // 4. ITEM 1: FLY PAST
-    tl.to(item1Ref.current, {
-      x: -1200,
-      rotateY: -45,
-      opacity: 0,
-      scale: 0.5,
-      ease: "power2.in",
-      duration: 1
-    }, "+=0.8");
+      tl.fromTo(ref,
+        { scale: 0.2, opacity: 0, z: -800, filter: "blur(20px)", x: index % 2 === 0 ? 200 : -200 },
+        { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", x: 0, ease: "power3.out", duration: 1.2 }
+      );
 
-    // 5. ITEM 2: NO-GI ASSEMBLY
-    tl.fromTo(item2Ref.current,
-      { scale: 0.2, opacity: 0, z: -800, filter: "blur(20px)" },
-      { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", ease: "power3.out", duration: 1.2 }
-    );
+      // Only fly past if it's not the last item
+      if (index < items.length - 1) {
+        tl.to(ref, {
+          x: index % 2 === 0 ? -1200 : 1200,
+          rotateY: index % 2 === 0 ? -45 : 45,
+          opacity: 0,
+          scale: 0.5,
+          ease: "power2.in",
+          duration: 1
+        }, "+=0.8");
+      }
+    });
 
   }, { scope: containerRef });
-
-  const buildCheckoutUrl = (name: string, price: string, details: string, imgId: string) => {
-    return `/checkout?plan=${encodeURIComponent(name)}&price=${price}&details=${encodeURIComponent(details)}&itemType=uniform&assetId=${imgId}`;
-  };
 
   return (
     <section ref={containerRef} className="relative h-screen w-full bg-[#002B5B] overflow-hidden flex flex-col items-center justify-center perspective-container">
@@ -122,92 +153,62 @@ export default function StoreAssemble() {
             GRACIE BARRA
           </span>
           <span className="block text-[8vw] font-black text-primary uppercase italic tracking-tighter leading-none -mt-4 drop-shadow-[0_0_30px_rgba(225,29,72,0.5)]">
-            TACTICAL STORE
+            STORE
           </span>
         </h1>
       </div>
 
-      {/* 2. ARMOR UNIT 1: KIMONO */}
-      <div ref={item1Ref} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform perspective-element px-6">
-        <Card className="max-w-4xl w-full bg-card/40 backdrop-blur-2xl border-4 border-border rounded-none shadow-2xl overflow-hidden">
-          <div className="flex flex-col md:flex-row h-full">
-            <div className="md:w-1/2 relative aspect-square md:aspect-auto">
-              <Image 
-                src={kimonoImg?.imageUrl || "https://picsum.photos/seed/kimono/800/1000"} 
-                alt="Kimono" 
-                fill 
-                className="object-cover" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-6 left-6 flex items-center gap-2">
-                <ShieldCheck className="text-primary h-5 w-5" />
-                <span className="text-[10px] font-black text-white uppercase tracking-widest">OFFICIAL COMMAND ISSUE</span>
-              </div>
-            </div>
-            <div className="md:w-1/2 p-12 flex flex-col justify-center space-y-8">
-              <div className="space-y-2 border-l-8 border-primary pl-8">
-                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic">Operational Gear v1.0</p>
-                <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-none">GB PRO KIMONO</h3>
-              </div>
-              <p className="text-lg font-bold text-white/60 uppercase tracking-tight leading-relaxed">
-                Engineered for maximum durability and tactical mobility. The standard issue uniform for all Gracie Barra units.
-              </p>
-              <div className="flex items-center justify-between pt-4">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">UNIT COST</span>
-                  <span className="text-5xl font-black text-white italic">$120.00</span>
+      {/* 2. ARMOR UNITS */}
+      {items.map((item, index) => {
+        const image = PlaceHolderImages.find(img => img.id === item.id);
+        return (
+          <div 
+            key={item.id}
+            ref={el => { itemRefs.current[index] = el; }}
+            className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform perspective-element px-6"
+          >
+            <Card className="max-w-4xl w-full bg-card/40 backdrop-blur-2xl border-4 border-border rounded-none shadow-2xl overflow-hidden">
+              <div className="flex flex-col md:flex-row h-full">
+                <div className="md:w-1/2 relative aspect-square md:aspect-auto">
+                  {image && (
+                    <Image 
+                      src={image.imageUrl} 
+                      alt={item.name} 
+                      fill 
+                      className="object-contain p-8" 
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute bottom-6 left-6 flex items-center gap-2 bg-black/40 px-3 py-1 border border-white/10 backdrop-blur-sm">
+                    {item.icon}
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{item.tag}</span>
+                  </div>
                 </div>
-                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic h-16 px-10 shadow-xl">
-                  <Link href={buildCheckoutUrl("GB Pro Kimono", "120", "Official competition-ready Gracie Barra Kimono. Durable pearl weave with reinforced stitching.", "gb-kimono")}>
-                    ACQUIRE UNIT <ShoppingCart className="ml-3 h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* 3. ARMOR UNIT 2: NO-GI */}
-      <div ref={item2Ref} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform perspective-element px-6">
-        <Card className="max-w-4xl w-full bg-card/40 backdrop-blur-2xl border-4 border-border rounded-none shadow-2xl overflow-hidden">
-          <div className="flex flex-col md:flex-row h-full">
-            <div className="md:w-1/2 relative aspect-square md:aspect-auto">
-              <Image 
-                src={nogiImg?.imageUrl || "https://picsum.photos/seed/nogi/800/1000"} 
-                alt="No-Gi" 
-                fill 
-                className="object-cover" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-6 left-6 flex items-center gap-2">
-                <Zap className="text-primary h-5 w-5" />
-                <span className="text-[10px] font-black text-white uppercase tracking-widest">TACTICAL STEALTH LAYER</span>
-              </div>
-            </div>
-            <div className="md:w-1/2 p-12 flex flex-col justify-center space-y-8">
-              <div className="space-y-2 border-l-8 border-primary pl-8">
-                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic">Combat Matrix v2.4</p>
-                <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-none">NO-GI ARMOR</h3>
-              </div>
-              <p className="text-lg font-bold text-white/60 uppercase tracking-tight leading-relaxed">
-                High-compression moisture-wicking tech. Optimized for high-intensity grappling and stealth operations.
-              </p>
-              <div className="flex items-center justify-between pt-4">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">UNIT COST</span>
-                  <span className="text-5xl font-black text-white italic">$80.00</span>
+                <div className="md:w-1/2 p-12 flex flex-col justify-center space-y-8">
+                  <div className="space-y-2 border-l-8 border-primary pl-8">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic">Armory Resource v2.0</p>
+                    <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-none">{item.name}</h3>
+                  </div>
+                  <p className="text-lg font-bold text-white/60 uppercase tracking-tight leading-relaxed">
+                    {item.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">UNIT COST</span>
+                      <span className="text-5xl font-black text-white italic">${item.price}.00</span>
+                    </div>
+                    <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic h-16 px-10 shadow-xl">
+                      <Link href={`/checkout?plan=${encodeURIComponent(item.name)}&price=${item.price}&details=${encodeURIComponent(item.details)}&itemType=uniform&assetId=${item.id}`}>
+                        ACQUIRE UNIT <ShoppingCart className="ml-3 h-5 w-5" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic h-16 px-10 shadow-xl">
-                  <Link href={buildCheckoutUrl("No-Gi Tactical Armor", "80", "Complete No-Gi set including high-compression rashguard and grappling shorts.", "gb-nogi")}>
-                    ACQUIRE UNIT <ShoppingCart className="ml-3 h-5 w-5" />
-                  </Link>
-                </Button>
               </div>
-            </div>
+            </Card>
           </div>
-        </Card>
-      </div>
+        );
+      })}
     </section>
   );
 }
