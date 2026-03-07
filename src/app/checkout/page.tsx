@@ -81,14 +81,29 @@ function CheckoutContent() {
               </div>
             </div>
             
-            <div className="space-y-4 border-l-8 border-primary pl-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">
-                {itemType === 'uniform' ? 'Armory Acquisition Protocol' : 'Operational Protocol Selection'}
-              </p>
-              <h1 className="text-6xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">{planTitle}</h1>
-              <div className="inline-block bg-primary text-white px-4 py-1 text-2xl font-black italic shadow-lg">
-                ${price}.00
+            <div className="relative">
+              <div className="space-y-4 border-l-8 border-primary pl-8">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">
+                  {itemType === 'uniform' ? 'Armory Acquisition Protocol' : 'Operational Protocol Selection'}
+                </p>
+                <h1 className="text-6xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">{planTitle}</h1>
+                <div className="inline-block bg-primary text-white px-4 py-1 text-2xl font-black italic shadow-lg">
+                  ${price}.00
+                </div>
               </div>
+
+              {/* Tactical Equipment Preview Overlay */}
+              {itemType === 'uniform' && (
+                <div className="absolute -bottom-24 -right-12 w-64 h-64 pointer-events-none hidden lg:block animate-in fade-in slide-in-from-right-8 duration-1000">
+                  <Image 
+                    src="https://graciebarrapilot.s3.us-east-1.amazonaws.com/Kiminiblanco.png" 
+                    alt="Tactical Uniform" 
+                    width={256}
+                    height={256}
+                    className="object-contain drop-shadow-[0_0_30px_rgba(225,29,72,0.4)]"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="max-w-md p-8 bg-white/5 border-2 border-white/10 rounded-none italic shadow-2xl backdrop-blur-sm">

@@ -38,24 +38,6 @@
       "imageHint": "robot avatar"
     },
     {
-      "id": "gb-kimono-blue",
-      "description": "Official Gracie Barra Blue Kimono",
-      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/kimonoazul.png",
-      "imageHint": "blue jiu jitsu kimono"
-    },
-    {
-      "id": "gb-rashguard-white",
-      "description": "Official Gracie Barra White Rashguard",
-      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/gbrashwhite.png",
-      "imageHint": "white jiu jitsu rashguard"
-    },
-    {
-      "id": "gb-shorts",
-      "description": "Official Gracie Barra Training Shorts",
-      "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/gbshort.png",
-      "imageHint": "jiu jitsu shorts"
-    },
-    {
       "id": "gb-kimono-white",
       "description": "Official Gracie Barra White Kimono",
       "imageUrl": "https://graciebarrapilot.s3.us-east-1.amazonaws.com/Kiminiblanco.png",

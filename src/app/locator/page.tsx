@@ -1,3 +1,4 @@
+
 import { AcademyLocator } from "@/components/locator/academy-locator";
 import { ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
@@ -49,7 +50,8 @@ export default function LocatorPage() {
             </p>
           </div>
 
-          <div className="py-4">
+          <div className="space-y-4">
+            <Marquee variant="red" />
             <Marquee variant="red" />
           </div>
 
