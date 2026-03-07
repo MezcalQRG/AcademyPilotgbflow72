@@ -169,7 +169,7 @@ export default function StoreAssemble() {
       </div>
 
       {/* Top Marquee (manifests after titles) */}
-      <div ref={topMarqueeRef} className="absolute top-20 md:top-24 left-0 w-full z-[90] opacity-0 pointer-events-none">
+      <div ref={topMarqueeRef} className="absolute top-0 left-0 w-full z-[90] opacity-0 pointer-events-none">
         <Marquee variant="black" />
       </div>
 
