@@ -18,6 +18,7 @@ export default function StoreAssemble() {
   const containerRef = useRef<HTMLDivElement>(null);
   const shieldRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
+  const overlaysRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const items = [
@@ -68,45 +69,47 @@ export default function StoreAssemble() {
         start: "top top",
         end: `+=${(items.length + 2) * 150}%`,
         pin: true,
-        scrub: 1.5,
+        scrub: 1.2,
         anticipatePin: 1,
       },
     });
 
-    // 1. SHIELD LOGO
-    // Starts visible at scale 1 when scroll is at top
+    // 1. SHIELD LOGO (Initial state visible)
     tl.to(shieldRef.current, {
-      scale: 15,
+      scale: 10,
       opacity: 0,
       z: 1000,
-      filter: "blur(40px)",
+      filter: "blur(30px)",
       ease: "power2.in",
-      duration: 1
+      duration: 1,
+      force3D: true
     });
 
     // 2. MASTER TITLE SECTION
     tl.fromTo(titleRef.current,
       { scale: 0.1, opacity: 0, filter: "blur(20px)", z: -1000 },
-      { scale: 1, opacity: 1, filter: "blur(0px)", z: 0, ease: "power2.out", duration: 1 }
+      { scale: 1, opacity: 1, filter: "blur(0px)", z: 0, ease: "power2.out", duration: 1, force3D: true }
     );
 
-    tl.to(titleRef.current, {
-      scale: 15,
+    // Fade out title AND the tunnel overlays (middle light/side shades)
+    tl.to([titleRef.current, overlaysRef.current], {
+      scale: (i) => i === 0 ? 10 : 1, // only title scales up
       opacity: 0,
-      z: 1000,
-      filter: "blur(40px)",
+      z: (i) => i === 0 ? 1000 : 0,
+      filter: (i) => i === 0 ? "blur(30px)" : "none",
       ease: "power2.in",
-      duration: 1
+      duration: 1,
+      force3D: true
     }, "+=0.5");
 
-    // 3. ITEMS ASSEMBLY
+    // 3. ITEMS ASSEMBLY (Now in a clean environment)
     items.forEach((item, index) => {
       const ref = itemRefs.current[index];
       if (!ref) return;
 
       tl.fromTo(ref,
         { scale: 0.2, opacity: 0, z: -800, filter: "blur(20px)", x: index % 2 === 0 ? 200 : -200 },
-        { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", x: 0, ease: "power3.out", duration: 1.2 }
+        { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", x: 0, ease: "power3.out", duration: 1.2, force3D: true }
       );
 
       if (index < items.length - 1) {
@@ -116,7 +119,8 @@ export default function StoreAssemble() {
           opacity: 0,
           scale: 0.5,
           ease: "power2.in",
-          duration: 1
+          duration: 1,
+          force3D: true
         }, "+=0.8");
       }
     });
@@ -147,12 +151,14 @@ export default function StoreAssemble() {
         </Button>
       </div>
 
-      <div className="absolute inset-0 z-50 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-      <div className="absolute inset-0 z-50 pointer-events-none bg-gradient-to-b from-black/20 via-transparent to-black/40" />
-
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
-        <div className="h-full w-full absolute top-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
+      {/* Cinematic Overlays (Targeted for removal after title) */}
+      <div ref={overlaysRef} className="absolute inset-0 z-50 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+        <div className="absolute inset-0 opacity-10">
+          <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
+          <div className="h-full w-full absolute top-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
+        </div>
       </div>
 
       {/* SHIELD LOGO STARTING ELEMENT */}
