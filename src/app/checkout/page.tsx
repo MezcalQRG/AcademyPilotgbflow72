@@ -69,11 +69,11 @@ function CheckoutContent() {
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-primary flex items-center justify-center p-2 border-2 border-border shadow-lg">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white flex items-center justify-center p-2 border-2 border-border shadow-lg">
                   <img 
                     src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                     alt="Logo" 
-                    className="w-full h-full object-contain brightness-0 invert"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <div className="flex flex-col leading-none">
