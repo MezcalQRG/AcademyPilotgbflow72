@@ -116,11 +116,11 @@ export default function AdPreview({ campaign, images, imageHashes, adAccountID, 
         <div className="border border-border rounded-none overflow-hidden bg-background">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
-                <div className="w-10 h-10 bg-primary flex items-center justify-center p-1.5">
+                <div className="w-10 h-10 flex items-center justify-center">
                     <img 
                       src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                       alt="GB Shield"
-                      className="w-full h-full object-contain brightness-0 invert"
+                      className="w-full h-full object-contain"
                     />
                 </div>
                 <div>

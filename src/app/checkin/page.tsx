@@ -51,11 +51,11 @@ function CheckInContent() {
 
       <Card className="w-full max-w-md rounded-none border-4 border-border shadow-[12px_12px_0px_rgba(0,0,0,0.1)] relative z-10 bg-card">
         <CardHeader className="text-center bg-secondary/5 border-b-4 border-border p-8">
-          <div className="w-16 h-16 bg-primary flex items-center justify-center text-white mx-auto mb-4 p-2">
+          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
             <img 
               src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
               alt="GB Shield" 
-              className="w-full h-full object-contain brightness-0 invert"
+              className="w-full h-full object-contain"
             />
           </div>
           <CardTitle className="text-4xl font-black italic uppercase tracking-tighter">Unit Check-In</CardTitle>
