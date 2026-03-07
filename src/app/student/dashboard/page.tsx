@@ -1,35 +1,55 @@
-
 "use client";
 
 import { useCheckIn } from '@/context/checkin-context';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Award, Trophy, Target, TrendingUp, Flame, Ban, Zap, Star } from 'lucide-react';
+import { Award, Trophy, Target, TrendingUp, Flame, Ban, Zap, Star, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { PhotoGrid } from '@/components/photo-grid';
+import { getAcademyPhotos } from '@/app/actions';
 
 export default function StudentDashboard() {
   const { currentUser, hasScanned } = useCheckIn();
+  const [photos, setPhotos] = useState<string[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    async function loadPhotos() {
+      if (!hasScanned) {
+        const academyPhotos = await getAcademyPhotos("310 S Glendora Ave West Covina 91790");
+        setPhotos(academyPhotos);
+      }
+    }
+    loadPhotos();
+  }, [hasScanned]);
 
   if (!hasScanned) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background text-center space-y-8">
-        <div className="w-24 h-24 bg-primary/10 border-4 border-primary flex items-center justify-center rotate-45 animate-pulse">
-          <Ban className="w-10 h-10 text-primary -rotate-45" />
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background text-center relative overflow-hidden">
+        {/* Tactical Background Matrix */}
+        <div className="absolute inset-0 z-0">
+          <PhotoGrid photoUrls={photos} />
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
         </div>
-        <div className="space-y-4 max-w-md">
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter">Handshake Required</h1>
-          <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
-            Operational data encrypted. Please scan the academy matrix to initialize your dashboard.
-          </p>
-          <button 
-            onClick={() => router.push('/student/scan')}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase italic h-16 tracking-[0.2em]"
-          >
-            ENGAGE SCANNER
-          </button>
+
+        <div className="relative z-10 space-y-8 animate-in fade-in zoom-in-95 duration-700">
+          <div className="w-24 h-24 bg-primary/10 border-4 border-primary flex items-center justify-center rotate-45 animate-pulse mx-auto">
+            <Ban className="w-10 h-10 text-primary -rotate-45" />
+          </div>
+          <div className="space-y-4 max-w-md mx-auto">
+            <h1 className="text-4xl font-black uppercase italic tracking-tighter text-foreground drop-shadow-md">Handshake Required</h1>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] bg-background/80 py-2 px-4 border border-border inline-block">
+              Operational data encrypted. Please scan the academy matrix to initialize your dashboard.
+            </p>
+            <button 
+              onClick={() => router.push('/student/scan')}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase italic h-16 tracking-[0.2em] shadow-2xl transition-transform hover:scale-105 active:scale-95"
+            >
+              ENGAGE SCANNER
+            </button>
+          </div>
         </div>
       </div>
     );
