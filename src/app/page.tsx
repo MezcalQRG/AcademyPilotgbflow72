@@ -1,6 +1,6 @@
 
-'use client';
-
+import { getAcademyPhotos } from '@/app/actions';
+import { PhotoGrid } from '@/components/photo-grid';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,8 @@ import {
   UserCircle
 } from 'lucide-react';
 
-export default function LandingPage() {
-  const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bjj');
+export default async function LandingPage() {
+  const photos = await getAcademyPhotos("310 S Glendora Ave West Covina 91790");
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -63,17 +63,7 @@ export default function LandingPage() {
       <main className="flex-grow pt-20">
         {/* Hero Section */}
         <section className="relative h-[85vh] flex items-center overflow-hidden bg-black">
-          <div className="absolute inset-0 z-0">
-            <Image 
-              src={heroImg?.imageUrl || 'https://picsum.photos/seed/gbhero/1200/800'} 
-              alt="Jiu-Jitsu Training" 
-              fill 
-              className="object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-1000"
-              priority
-              data-ai-hint="jiu-jitsu training"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
-          </div>
+          <PhotoGrid photoUrls={photos} />
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-2xl space-y-6">
               <div className="inline-block bg-primary px-4 py-1 text-white text-[10px] font-black uppercase tracking-[0.3em] italic">

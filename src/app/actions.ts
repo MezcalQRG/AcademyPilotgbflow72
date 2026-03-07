@@ -1,3 +1,4 @@
+
 "use server";
 
 import { generateCampaignStructure } from "@/ai/flows/generate-campaign-structure";
@@ -10,6 +11,8 @@ import { generateSystemPrompt } from "@/ai/flows/generate-system-prompt";
 import { chatAssistant as chatAssistantFlow, type ChatAssistantInput } from "@/ai/flows/global-chat-ai-assistant";
 import type { CampaignStructure, Campaign, PublishResult, AdImage } from "@/lib/types";
 import type { AgentProfile } from "@/lib/synth-types";
+import { geocodeAddress, findFranchise } from '@/lib/academies';
+import { unstable_cache as cache } from 'next/cache';
 
 export async function createCampaignAction(data: {
   adAccountID: string;
@@ -98,12 +101,9 @@ export async function reasoningBasedAgentResponse(input: ReasoningBasedAgentResp
   return reasoningBasedAgentResponseFlow(input);
 }
 
-// --- Chat Assistant Action ---
 export async function chatAssistantAction(input: ChatAssistantInput) {
   return chatAssistantFlow(input);
 }
-
-// --- AgentSynth Actions ---
 
 export async function generateSystemPromptAction(description: string) {
   if (!description || description.trim().length < 10) {
@@ -236,3 +236,29 @@ export async function makeOutboundCallAction(
     return { error: error.message || "An unexpected error occurred." };
   }
 }
+
+/**
+ * Fetches academy photos using the REST API for server-side execution.
+ */
+export const getAcademyPhotos = cache(
+  async (address: string): Promise<string[]> => {
+    const geocoded = await geocodeAddress(address);
+    if (!geocoded) return [];
+
+    const academies = await findFranchise(geocoded, 50000);
+    if (!academies || academies.length === 0) return [];
+
+    const photos: string[] = [];
+    academies.forEach(academy => {
+      if (academy.photos) {
+        academy.photos.forEach(photo => {
+          if (photo.name) photos.push(photo.name);
+        });
+      }
+    });
+    
+    return Array.from(new Set(photos));
+  },
+  ['academy-photos'],
+  { revalidate: 3600 }
+);
