@@ -47,6 +47,7 @@ export default function AcademySettingsPage() {
   const db = useFirestore();
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   
   // Form state for General tab
   const [academyName, setAcademyName] = useState('');
@@ -152,6 +153,16 @@ export default function AcademySettingsPage() {
       });
   };
 
+  const verifyConnection = (id: string) => {
+    setVerifyingId(id);
+    // Simulate tactical handshake
+    setTimeout(() => {
+      handleUpdateConnection(id, { status: 'active' });
+      setVerifyingId(null);
+      toast({ title: "LINK VERIFIED", description: "Tactical handshake established successfully." });
+    }, 1500);
+  };
+
   const deleteConnection = (id: string) => {
     if (!db || !user) return;
     const configDocRef = doc(db, 'user_profiles', user.uid, 'integration_configs', id);
@@ -196,7 +207,7 @@ export default function AcademySettingsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-700">
       <div className="border-l-4 border-primary pl-6">
-        <h1 className="font-headline text-4xl font-black uppercase italic tracking-tighter leading-none">Command & Integrations</h1>
+        <h1 className="font-headline text-4xl font-black uppercase italic tracking-tighter leading-none text-foreground">Command & Integrations</h1>
         <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-2">Ops: Managing Tactical Handshakes & Mission Credentials</p>
       </div>
 
@@ -213,7 +224,6 @@ export default function AcademySettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* GENERAL SECTOR */}
         <TabsContent value="general" className="space-y-8 animate-in fade-in duration-500">
           <Card className="rounded-none border-2 border-border bg-card shadow-md">
             <CardHeader className="bg-secondary/5 border-b border-border">
@@ -244,14 +254,13 @@ export default function AcademySettingsPage() {
                 onClick={handleSaveProfile}
                 disabled={isSaving}
               >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4" />}
                 SECURE PROFILE
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
 
-        {/* PUSH SECTOR */}
         <TabsContent value="push" className="space-y-8 animate-in fade-in duration-500">
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
             <ActionTriggerCard 
@@ -270,9 +279,13 @@ export default function AcademySettingsPage() {
             {configsLoading ? (
                <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
             ) : !configs || configs.length === 0 ? (
-              <div className="p-20 border-2 border-dashed border-border rounded-none text-center opacity-40 italic">
-                <p className="text-[10px] font-black uppercase">No active tactical links established.</p>
-              </div>
+              <button 
+                onClick={() => addConnection('webhook')}
+                className="w-full p-20 border-2 border-dashed border-border rounded-none text-center opacity-40 italic hover:opacity-100 hover:border-primary hover:bg-primary/5 transition-all group"
+              >
+                <Plus className="h-12 w-12 mx-auto mb-4 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-transform" />
+                <p className="text-[10px] font-black uppercase tracking-widest">No active tactical links established. Click to initialize.</p>
+              </button>
             ) : (
               <div className="space-y-6">
                 {configs.map((conn) => (
@@ -290,22 +303,35 @@ export default function AcademySettingsPage() {
                             </Badge>
                           </div>
                         </div>
-                        <Badge className={`rounded-none font-black uppercase text-[9px] tracking-widest px-3 py-1 ${conn.status === 'active' ? 'bg-green-600' : 'bg-primary'}`}>
+                        <Badge className={`rounded-none font-black uppercase text-[9px] tracking-widest px-3 py-1 ${conn.status === 'active' ? 'bg-green-600 text-white shadow-[0_0_10px_rgba(22,163,74,0.5)]' : 'bg-primary'}`}>
                           {conn.status === 'active' ? 'CONNECTED' : 'DISCONNECTED'}
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="p-8 space-y-6 bg-background/50">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">API Secret Key</Label>
-                          <Input 
-                            type="password" 
-                            placeholder="PASTE SECRET..."
-                            defaultValue={conn.apiSecret || ''}
-                            onBlur={(e) => handleUpdateConnection(conn.id, { apiSecret: e.target.value, status: 'active' })}
-                            className="rounded-none border-2 h-12 bg-background font-mono text-xs focus-visible:ring-primary" 
-                          />
+                          <div className="flex gap-2">
+                            <Input 
+                              type="password" 
+                              placeholder="PASTE SECRET..."
+                              defaultValue={conn.apiSecret || ''}
+                              onBlur={(e) => handleUpdateConnection(conn.id, { apiSecret: e.target.value })}
+                              className="rounded-none border-2 h-12 bg-background font-mono text-xs focus-visible:ring-primary flex-1" 
+                            />
+                            <Button 
+                              variant="outline" 
+                              onClick={() => verifyConnection(conn.id)}
+                              disabled={verifyingId === conn.id}
+                              className={cn(
+                                "rounded-none border-2 h-12 font-black uppercase text-[10px] px-6 transition-all",
+                                conn.status === 'active' ? "bg-green-600 text-white border-green-600 hover:bg-green-700" : "hover:bg-primary/10"
+                              )}
+                            >
+                              {verifyingId === conn.id ? <Loader2 className="animate-spin h-4 w-4" /> : conn.status === 'active' ? <Check className="h-4 w-4" /> : "VERIFY"}
+                            </Button>
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Target Destination URL</Label>
@@ -313,7 +339,7 @@ export default function AcademySettingsPage() {
                             type="url" 
                             placeholder="https://api.external-theater.com/webhook"
                             defaultValue={conn.webhookUrl || ''}
-                            onBlur={(e) => handleUpdateConnection(conn.id, { webhookUrl: e.target.value, status: 'active' })}
+                            onBlur={(e) => handleUpdateConnection(conn.id, { webhookUrl: e.target.value })}
                             className="rounded-none border-2 h-12 bg-background font-mono text-xs focus-visible:ring-primary" 
                           />
                         </div>
@@ -335,7 +361,6 @@ export default function AcademySettingsPage() {
           </div>
         </TabsContent>
 
-        {/* PULL SECTOR */}
         <TabsContent value="pull" className="space-y-8 animate-in fade-in duration-500">
           <Card className="rounded-none border-4 border-primary bg-primary/5 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
