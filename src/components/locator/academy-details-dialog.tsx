@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -25,12 +24,21 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
   const [phone, setPhone] = useState("");
   const [isSent, setIsSent] = useState(false);
   const { toast } = useToast();
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   if (!academy) return null;
 
-  const photoUrl = (academy.photos && academy.photos.length > 0) 
-    ? (academy.photos[0] as any).getURI() 
-    : `https://picsum.photos/seed/${academy.id}/600/400`;
+  // Tactical Photo Resolution
+  let photoUrl = `https://picsum.photos/seed/${academy.id}/600/400`;
+  if (academy.photos && academy.photos.length > 0) {
+    const photo = academy.photos[0];
+    const photoName = typeof photo === 'string' ? photo : photo.name;
+    if (photoName && photoName.startsWith('places/')) {
+      photoUrl = `https://places.googleapis.com/v1/${photoName}/media?key=${apiKey}&maxWidthPx=1200`;
+    } else if (typeof photo === 'string' && photo.startsWith('http')) {
+      photoUrl = photo;
+    }
+  }
 
   const handleSendRequest = (e: React.FormEvent) => {
     e.preventDefault();

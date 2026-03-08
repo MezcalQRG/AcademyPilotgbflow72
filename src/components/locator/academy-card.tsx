@@ -15,10 +15,19 @@ interface AcademyCardProps {
 
 export function AcademyCard({ academy, onClick, isSelected, index }: AcademyCardProps) {
   const distanceMiles = academy.distance ? (academy.distance / 1609.34).toFixed(1) : null;
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  const photoUrl = (academy.photos && academy.photos.length > 0) 
-    ? (academy.photos[0] as any).getURI() 
-    : `https://picsum.photos/seed/${academy.id}/600/400`;
+  // Tactical Photo Resolution
+  let photoUrl = `https://picsum.photos/seed/${academy.id}/600/400`;
+  if (academy.photos && academy.photos.length > 0) {
+    const photo = academy.photos[0];
+    const photoName = typeof photo === 'string' ? photo : photo.name;
+    if (photoName && photoName.startsWith('places/')) {
+      photoUrl = `https://places.googleapis.com/v1/${photoName}/media?key=${apiKey}&maxWidthPx=800`;
+    } else if (typeof photo === 'string' && photo.startsWith('http')) {
+      photoUrl = photo;
+    }
+  }
 
   return (
     <Card 
