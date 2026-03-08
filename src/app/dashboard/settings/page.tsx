@@ -40,6 +40,7 @@ import {
 import { doc, collection, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { cn } from '@/lib/utils';
 
 export default function AcademySettingsPage() {
   const { toast } = useToast();
@@ -48,6 +49,9 @@ export default function AcademySettingsPage() {
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  
+  // Tactical Optimistic UI State
+  const [localConfigs, setLocalConfigs] = useState<any[]>([]);
   
   // Form state for General tab
   const [academyName, setAcademyName] = useState('');
@@ -68,6 +72,12 @@ export default function AcademySettingsPage() {
   }, [db, user]);
   
   const { data: configs, isLoading: configsLoading } = useCollection(configsRef);
+
+  // Merge optimistic local configs with Firestore data, avoiding duplicates
+  const allConfigs = [
+    ...localConfigs,
+    ...(configs?.filter(c => !localConfigs.find(lc => lc.id === c.id)) || [])
+  ];
 
   // Sync form state
   useEffect(() => {
@@ -112,13 +122,13 @@ export default function AcademySettingsPage() {
   const addConnection = (type: string) => {
     if (!db || !user) return;
     
-    // Generate a tactical ID locally to satisfy security rules (ID in path must match data.id)
+    // Generate tactical ID
     const configId = `link_${Math.random().toString(36).substring(2, 12).toUpperCase()}`;
     const configDocRef = doc(db, 'user_profiles', user.uid, 'integration_configs', configId);
 
     const newConfig = {
-      id: configId, // REQUIRED: Must match the document ID for the security rule
-      userId: user.uid, // REQUIRED: Must match auth.uid
+      id: configId,
+      userId: user.uid,
       name: `TACTICAL ${type.toUpperCase()} LINK`,
       type,
       apiKeyIdentifier: `ID-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
@@ -129,17 +139,32 @@ export default function AcademySettingsPage() {
       webhookUrl: ''
     };
 
-    // Use setDoc instead of addDoc to ensure ID alignment
+    // 1. RENDER IMMEDIATELY (Optimistic)
+    setLocalConfigs(prev => [newConfig, ...prev]);
+    toast({ title: "INITIALIZING LINK", description: `Manifesting ${type.toUpperCase()} controller...` });
+
+    // 2. EXECUTE LOGIC (Firestore Write)
     setDoc(configDocRef, newConfig)
+      .then(() => {
+        // Success: Clean up local optimistic entry once useCollection syncs
+        setTimeout(() => {
+          setLocalConfigs(prev => prev.filter(c => c.id !== configId));
+        }, 1000);
+      })
       .catch(async (e) => {
+        // 3. IF FAIL: REVERT UI AND SHOW MESSAGE
+        setLocalConfigs(prev => prev.filter(c => c.id !== configId));
+        toast({ 
+          variant: "destructive", 
+          title: "HANDSHAKE FAILED", 
+          description: "Tactical security protocols blocked the connection initialization. Registry reverted." 
+        });
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: configDocRef.path,
           operation: 'create',
           requestResourceData: newConfig
         }));
       });
-      
-    toast({ title: "INITIALIZING LINK", description: `Provisioning ${type.toUpperCase()} connection matrix.` });
   };
 
   const handleUpdateConnection = (id: string, data: any) => {
@@ -282,9 +307,9 @@ export default function AcademySettingsPage() {
               <Zap className="h-4 w-4 text-primary" /> Active Integration Controllers
             </h3>
             
-            {configsLoading ? (
+            {configsLoading && allConfigs.length === 0 ? (
                <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
-            ) : !configs || configs.length === 0 ? (
+            ) : allConfigs.length === 0 ? (
               <button 
                 onClick={() => addConnection('webhook')}
                 className="w-full p-20 border-2 border-dashed border-border rounded-none text-center opacity-40 italic hover:opacity-100 hover:border-primary hover:bg-primary/5 transition-all group"
@@ -294,7 +319,7 @@ export default function AcademySettingsPage() {
               </button>
             ) : (
               <div className="space-y-6">
-                {configs.map((conn) => (
+                {allConfigs.map((conn) => (
                   <Card key={conn.id} className="rounded-none border-2 border-border bg-card group hover:border-primary transition-all shadow-md overflow-hidden will-change-transform animate-in slide-in-from-top-4 duration-500">
                     <CardHeader className="p-6 pb-4 bg-secondary/5 border-b-2 border-border">
                       <div className="flex items-center justify-between">
