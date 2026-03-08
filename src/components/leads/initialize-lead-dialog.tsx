@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -20,10 +21,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Zap } from "lucide-react";
-import { addDocumentNonBlocking, useUser, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, serverTimestamp } from "firebase/firestore";
+import { Zap, Loader2 } from "lucide-react";
+import { useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "Required"),
@@ -34,14 +35,8 @@ const formSchema = z.object({
 
 export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) {
   const { user } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
-  
-  // Aligning path with security rules: /user_profiles/{userId}/leads
-  const leadsRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, 'user_profiles', user.uid, 'leads');
-  }, [firestore, user]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,35 +48,47 @@ export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!leadsRef) return;
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) return;
+    setIsSubmitting(true);
 
-    const leadData = {
-      ...values,
-      qualificationStatus: "New",
-      sourceType: "Manual",
-      sourceEntityId: "manual_entry",
-      capturedAt: new Date().toISOString(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      userId: user?.uid,
-      tags: ["trial"], // Operational Tag: Identifying as Trial Unit per Command
-      // Initialize with empty structures to prevent profile crashes
-      billingDay: Math.floor(Math.random() * 28) + 1, // Random default billing day
-      paymentHistory: [],
-      savedPaymentMethods: [],
-      notes: "Initial enrollment complete. Tactical briefing pending.",
-    };
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...values,
+          userId: user.uid,
+          qualificationStatus: "New",
+          sourceType: "Manual",
+          sourceEntityId: "manual_entry",
+          capturedAt: new Date().toISOString(),
+          tags: ["trial"],
+          billingDay: Math.floor(Math.random() * 28) + 1,
+          paymentHistory: [],
+          savedPaymentMethods: [],
+          notes: "Initial enrollment complete. Tactical briefing pending.",
+        }),
+      });
 
-    addDocumentNonBlocking(leadsRef, leadData);
+      if (!response.ok) throw new Error('Handshake failed');
 
-    toast({
-      title: "UNIT INITIALIZED",
-      description: `${values.firstName} ${values.lastName} has been added to the tactical matrix with TRIAL status.`,
-    });
-    
-    form.reset();
-    onOpenChange(false);
+      toast({
+        title: "UNIT INITIALIZED",
+        description: `${values.firstName} ${values.lastName} has been added to the tactical matrix.`,
+      });
+      
+      form.reset();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "INITIALIZATION FAILURE",
+        description: error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -162,7 +169,8 @@ export function InitializeLeadDialog({ isOpen, onOpenChange }: { isOpen: boolean
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 rounded-none font-black uppercase italic border-2 h-14">
                 Abort
               </Button>
-              <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-14 shadow-xl">
+              <Button type="submit" disabled={isSubmitting} className="flex-[2] bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-14 shadow-xl">
+                {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : null}
                 Commit to Matrix
               </Button>
             </div>
