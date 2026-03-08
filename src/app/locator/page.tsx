@@ -2,7 +2,6 @@ import { AcademyLocator } from "@/components/locator/academy-locator";
 import { ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import Marquee from "@/components/landing/Marquee";
 import { PhotoGrid } from "@/components/photo-grid";
 import { getAcademyPhotos } from "@/app/actions";
 
@@ -58,11 +57,6 @@ export default async function LocatorPage() {
               <p className="text-xl text-white font-black uppercase italic tracking-tight max-w-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] bg-black/20 p-2 inline-block">
                 Find a certified Gracie Barra training center in your area. Join our global brotherhood and start your journey with a free trial class today.
               </p>
-            </div>
-
-            <div className="space-y-4">
-              <Marquee variant="red" />
-              <Marquee variant="red" />
             </div>
 
             <AcademyLocator />
