@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ShieldCheck, 
   Key, 
@@ -43,6 +43,11 @@ export default function AcademySettingsPage() {
   const [copied, setCopied] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   
+  // Initial Form State
+  const [initApiKey, setInitApiKey] = useState('');
+  const [initCrmUrl, setInitCrmUrl] = useState('');
+  const [isInitialVerifying, setIsInitialVerifying] = useState(false);
+  
   // Tactical Optimistic UI State
   const [localConfigs, setLocalConfigs] = useState<any[]>([]);
   
@@ -75,7 +80,7 @@ export default function AcademySettingsPage() {
     toast({ title: "INTEL COPIED", description: "Tactical credentials secured to clipboard." });
   };
 
-  const addConnection = (type: string) => {
+  const addConnection = (type: string, initialData?: { apiSecret: string, webhookUrl: string }) => {
     if (!db || !user) return;
     
     const configId = `link_${Math.random().toString(36).substring(2, 12).toUpperCase()}`;
@@ -87,16 +92,15 @@ export default function AcademySettingsPage() {
       name: `TACTICAL ${type.toUpperCase()} LINK`,
       type,
       apiKeyIdentifier: `ID-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-      status: 'disconnected',
+      status: initialData ? 'active' : 'disconnected',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      apiSecret: '',
-      webhookUrl: ''
+      apiSecret: initialData?.apiSecret || '',
+      webhookUrl: initialData?.webhookUrl || ''
     };
 
     setLocalConfigs(prev => [newConfig, ...prev]);
-    toast({ title: "INITIALIZING LINK", description: `Manifesting ${type.toUpperCase()} controller...` });
-
+    
     setDoc(configDocRef, newConfig)
       .then(() => {
         setTimeout(() => {
@@ -116,6 +120,40 @@ export default function AcademySettingsPage() {
           requestResourceData: newConfig
         }));
       });
+  };
+
+  const handleInitialVerify = async () => {
+    if (!initApiKey || !initCrmUrl) {
+      toast({ variant: "destructive", title: "MISSING COORDINATES", description: "API Key and Target URL required for handshake." });
+      return;
+    }
+
+    setIsInitialVerifying(true);
+    try {
+      // Tactical Handshake: Sending dummy payload to destination
+      const response = await fetch(initCrmUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tactical_handshake: true, token: initApiKey })
+      });
+
+      if (response.ok) {
+        toast({ title: "LINK VERIFIED", description: "200 OK received. Establishing data bridge." });
+        addConnection('webhook', { apiSecret: initApiKey, webhookUrl: initCrmUrl });
+        setInitApiKey('');
+        setInitCrmUrl('');
+      } else {
+        throw new Error(`STATUS ${response.status}`);
+      }
+    } catch (e: any) {
+      toast({ 
+        variant: "destructive", 
+        title: "HANDSHAKE REJECTED", 
+        description: `Operational endpoint failed to respond: ${e.message}` 
+      });
+    } finally {
+      setIsInitialVerifying(false);
+    }
   };
 
   const handleUpdateConnection = (id: string, data: any) => {
@@ -212,7 +250,7 @@ export default function AcademySettingsPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="rounded-none border-primary text-primary hover:bg-primary hover:text-white font-black uppercase italic text-[9px] h-8 px-4"
+                  className="rounded-none border-primary text-primary hover:bg-primary hover:text-white font-black uppercase italic text-[10px] h-8 px-4"
                   onClick={() => addConnection('webhook')}
                 >
                   <Plus className="w-3 h-3 mr-2" /> New Protocol
@@ -225,35 +263,48 @@ export default function AcademySettingsPage() {
             ) : allConfigs.length === 0 ? (
               <Card className="rounded-none border-2 border-border bg-card group hover:border-primary transition-all shadow-md overflow-hidden">
                 <CardHeader className="p-6 pb-4 bg-secondary/5 border-b-2 border-border">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 bg-background border-2 border-border group-hover:border-primary transition-colors">
-                        <Key className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm font-black uppercase italic tracking-tight">Tactical Webhook Provisioning</CardTitle>
-                        <Badge variant="outline" className="text-[8px] uppercase font-black tracking-widest rounded-none h-4 border-primary/30 text-primary">
-                          PENDING
-                        </Badge>
-                      </div>
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-background border-2 border-border group-hover:border-primary transition-colors">
+                      <Key className="w-5 h-5 text-primary" />
                     </div>
-                    <Badge className="rounded-none font-black uppercase text-[9px] tracking-widest px-3 py-1 bg-primary">
-                      OFFLINE
-                    </Badge>
+                    <div>
+                      <CardTitle className="text-sm font-black uppercase italic tracking-tight">Protocol Initialization Matrix</CardTitle>
+                      <CardDescription className="text-[8px] uppercase font-black tracking-widest text-primary">Awaiting Secure Link Credentials</CardDescription>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-12 space-y-8 bg-background/50 text-center">
+                <CardContent className="p-12 space-y-8 bg-background/50">
                   <div className="max-w-md mx-auto space-y-6">
-                    <div className="p-6 bg-primary/5 border-2 border-dashed border-primary/20 rounded-none italic">
-                      <p className="text-xs font-bold uppercase text-primary leading-relaxed">
-                        No tactical data bridge is currently established. Initialize the protocol to manifest the integration controller.
-                      </p>
+                    <div className="space-y-4">
+                      <div className="space-y-2 text-left">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Target API Secret</Label>
+                        <Input 
+                          type="password" 
+                          placeholder="SK_XXXXXXXXX"
+                          value={initApiKey}
+                          onChange={(e) => setInitApiKey(e.target.value)}
+                          className="rounded-none border-2 h-12 bg-background font-mono text-xs focus-visible:ring-primary"
+                        />
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">CRM Target URL</Label>
+                        <Input 
+                          type="url" 
+                          placeholder="https://api.crm-target.com/hooks/..."
+                          value={initCrmUrl}
+                          onChange={(e) => setInitCrmUrl(e.target.value)}
+                          className="rounded-none border-2 h-12 bg-background font-mono text-xs focus-visible:ring-primary"
+                        />
+                      </div>
                     </div>
+                    
                     <Button 
-                      onClick={() => addConnection('webhook')}
-                      className="bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-16 px-12 shadow-xl shadow-primary/20 transition-all hover:scale-105"
+                      onClick={handleInitialVerify}
+                      disabled={isInitialVerifying || !initApiKey || !initCrmUrl}
+                      className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-16 px-12 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02]"
                     >
-                      <Zap className="mr-3 h-6 w-6 fill-current" /> MANIFEST CONTROLLER
+                      {isInitialVerifying ? <Loader2 className="mr-3 h-6 w-6 animate-spin" /> : <Zap className="mr-3 h-6 w-6 fill-current" />}
+                      VERIFY & INITIALIZE LINK
                     </Button>
                   </div>
                 </CardContent>
