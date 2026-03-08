@@ -37,7 +37,7 @@ import {
   useCollection, 
   useMemoFirebase,
 } from '@/firebase';
-import { doc, collection, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -110,24 +110,30 @@ export default function AcademySettingsPage() {
   };
 
   const addConnection = (type: string) => {
-    if (!configsRef) return;
+    if (!db || !user) return;
     
+    // Generate a tactical ID locally to satisfy security rules
+    const configId = `link_${Math.random().toString(36).substring(2, 12).toUpperCase()}`;
+    const configDocRef = doc(db, 'user_profiles', user.uid, 'integration_configs', configId);
+
     const newConfig = {
+      id: configId, // REQUIRED: Must match the document ID for the security rule
       name: `TACTICAL ${type.toUpperCase()} LINK`,
       type,
       apiKeyIdentifier: `ID-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
       status: 'disconnected',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      userId: user?.uid,
+      userId: user.uid,
       apiSecret: '',
       webhookUrl: ''
     };
 
-    addDoc(configsRef, newConfig)
+    // Use setDoc instead of addDoc to control the ID
+    setDoc(configDocRef, newConfig)
       .catch(async (e) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: configsRef.path,
+          path: configDocRef.path,
           operation: 'create',
           requestResourceData: newConfig
         }));
@@ -155,7 +161,7 @@ export default function AcademySettingsPage() {
 
   const verifyConnection = (id: string) => {
     setVerifyingId(id);
-    // Simulate tactical handshake
+    // Simulate tactical handshake verification
     setTimeout(() => {
       handleUpdateConnection(id, { status: 'active' });
       setVerifyingId(null);
