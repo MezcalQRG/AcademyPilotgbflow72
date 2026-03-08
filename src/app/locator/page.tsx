@@ -1,11 +1,14 @@
-
 import { AcademyLocator } from "@/components/locator/academy-locator";
 import { ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Marquee from "@/components/landing/Marquee";
+import { PhotoGrid } from "@/components/photo-grid";
+import { getAcademyPhotos } from "@/app/actions";
 
-export default function LocatorPage() {
+export default async function LocatorPage() {
+  const photos = await getAcademyPhotos("310 S Glendora Ave West Covina 91790");
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Tactical Header */}
@@ -32,35 +35,43 @@ export default function LocatorPage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary flex items-center justify-center text-white font-black italic text-xl">GB</div>
+          <div className="w-12 h-12 bg-primary flex items-center justify-center text-white font-black italic text-xl shadow-xl">GB</div>
         </div>
       </header>
 
-      <main className="flex-grow py-16 lg:py-24">
-        <div className="container mx-auto px-4 space-y-16">
-          <div className="max-w-3xl border-l-8 border-primary pl-10 space-y-4">
-            <div className="inline-block bg-primary text-white px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] italic mb-2">
-              MISSION: FIND YOUR TEAM
+      <main className="flex-grow relative overflow-hidden bg-black">
+        {/* Cinematic Tactical Grid Background */}
+        <div className="absolute inset-0 z-0">
+          <PhotoGrid photoUrls={photos} />
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+        </div>
+
+        <div className="relative z-10 py-16 lg:py-24">
+          <div className="container mx-auto px-4 space-y-16">
+            <div className="max-w-3xl border-l-8 border-primary pl-10 space-y-4">
+              <div className="inline-block bg-primary text-white px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] italic mb-2 shadow-lg">
+                MISSION: FIND YOUR TEAM
+              </div>
+              <h1 className="text-6xl md:text-8xl font-headline font-black uppercase italic tracking-tighter leading-none text-white drop-shadow-2xl">
+                Locate the Nearest <br /><span className="text-primary">Jiu-Jitsu</span> Academy
+              </h1>
+              <p className="text-xl text-white/90 font-bold uppercase italic tracking-tight max-w-xl drop-shadow-md">
+                Find a certified Gracie Barra training center in your area. Join our global brotherhood and start your journey with a free trial class today.
+              </p>
             </div>
-            <h1 className="text-6xl md:text-8xl font-headline font-black uppercase italic tracking-tighter leading-none">
-              Locate the Nearest <br /><span className="text-primary">Jiu-Jitsu</span> Academy
-            </h1>
-            <p className="text-xl text-muted-foreground font-bold uppercase italic tracking-tight max-w-xl">
-              Find a certified Gracie Barra training center in your area. Join our global brotherhood and start your journey with a free trial class today.
-            </p>
-          </div>
 
-          <div className="space-y-4">
-            <Marquee variant="red" />
-            <Marquee variant="red" />
-          </div>
+            <div className="space-y-4">
+              <Marquee variant="red" />
+              <Marquee variant="red" />
+            </div>
 
-          <AcademyLocator />
+            <AcademyLocator />
+          </div>
         </div>
       </main>
 
       {/* Simple Tactical Footer */}
-      <footer className="bg-card border-t-4 border-border py-12 px-8 lg:px-12">
+      <footer className="bg-card border-t-4 border-border py-12 px-8 lg:px-12 relative z-10 shadow-inner">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-3 opacity-50">
              <Shield className="h-6 w-6" />
