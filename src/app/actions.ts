@@ -9,6 +9,7 @@ import { getAdImages } from "@/ai/flows/get-ad-images";
 import { reasoningBasedAgentResponse as reasoningBasedAgentResponseFlow, type ReasoningBasedAgentResponseInput } from '@/ai/flows/reasoning-based-agent-response';
 import { generateSystemPrompt } from "@/ai/flows/generate-system-prompt";
 import { chatAssistant as chatAssistantFlow, type ChatAssistantInput } from "@/ai/flows/global-chat-ai-assistant";
+import { receiveAutomationSuggestions as receiveAutomationSuggestionsFlow, type AutomationSuggestionInput } from '@/ai/flows/receive-automation-suggestions';
 import type { CampaignStructure, Campaign, PublishResult, AdImage } from "@/lib/types";
 import type { AgentProfile } from "@/lib/synth-types";
 import { geocodeAddress, findFranchise } from '@/lib/academies';
@@ -235,6 +236,10 @@ export async function makeOutboundCallAction(
   } catch (error: any) {
     return { error: error.message || "An unexpected error occurred." };
   }
+}
+
+export async function receiveAutomationSuggestionsAction(input: AutomationSuggestionInput) {
+  return receiveAutomationSuggestionsFlow(input);
 }
 
 /**

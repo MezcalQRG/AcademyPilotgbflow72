@@ -1,7 +1,8 @@
+
 "use client";
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Megaphone, Settings, LogOut, Mic, MessageSquare, CalendarCheck } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, Settings, LogOut, Mic, MessageSquare, CalendarCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GlobalChat } from "@/components/chat/global-chat";
@@ -12,6 +13,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { title: "Overview", icon: LayoutDashboard, href: "/dashboard" },
     { title: "Lead Management", icon: Users, href: "/dashboard/leads" },
+    { title: "Tactical Automations", icon: Zap, href: "/dashboard/automations" },
     { title: "Conversations", icon: MessageSquare, href: "/dashboard/conversations" },
     { title: "Class Command", icon: CalendarCheck, href: "/dashboard/classes" },
     { title: "Ad Deployment", icon: Megaphone, href: "/dashboard/ads" },
@@ -44,11 +46,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    isActive={pathname === item.href}
-                    className={`rounded-none py-6 px-4 border-l-4 transition-all ${pathname === item.href ? 'bg-primary/10 border-primary text-primary font-black italic' : 'border-transparent hover:bg-sidebar-accent text-sidebar-foreground/70'}`}
+                    isActive={pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))}
+                    className={`rounded-none py-6 px-4 border-l-4 transition-all ${pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) ? 'bg-primary/10 border-primary text-primary font-black italic' : 'border-transparent hover:bg-sidebar-accent text-sidebar-foreground/70'}`}
                   >
                     <Link href={item.href}>
-                      <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-primary' : ''}`} />
+                      <item.icon className={`h-5 w-5 ${pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) ? 'text-primary' : ''}`} />
                       <span className="font-headline uppercase tracking-widest text-[10px] font-bold">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -69,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <h2 className="font-headline text-lg font-black uppercase italic tracking-tight">
-                {navItems.find(i => i.href === pathname)?.title || "Dashboard"}
+                {navItems.find(i => pathname === i.href || (i.href !== "/dashboard" && pathname.startsWith(i.href)))?.title || "Dashboard"}
               </h2>
             </div>
             <div className="flex items-center gap-4">
