@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -64,7 +65,14 @@ export function PaymentGatewayDialog({ children, planTitle, planDetails }: Payme
               
               <div className="space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">Protocol Selection</p>
-                <h3 className="text-3xl font-black uppercase italic tracking-tighter leading-tight">{planTitle}</h3>
+                <DialogHeader className="p-0 space-y-0 text-left">
+                  <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter leading-tight">
+                    {planTitle}
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Mission brief and financial matrix initialization for {planTitle}.
+                  </DialogDescription>
+                </DialogHeader>
               </div>
 
               <div className="p-4 bg-white/5 border border-white/10 rounded-none italic">

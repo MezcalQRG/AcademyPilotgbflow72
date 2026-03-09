@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,6 +6,9 @@ import { Academy } from "@/lib/academies";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +73,7 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
         firstName: name.split(' ')[0],
         lastName: name.split(' ').slice(1).join(' ') || 'RECRUIT',
         phoneNumber: phone,
-        userId: user?.uid || 'INITIALIZING', // In a real app, we'd wait for user or use a dedicated system UID
+        userId: user?.uid || 'INITIALIZING',
         qualificationStatus: "New",
         sourceType: "Locator Link",
         sourceEntityId: academy.id,
@@ -83,8 +87,6 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...leadPayload,
-          // Since this is a public visitor, we use a global system ID for the "owner" of locator leads
-          // or rely on the anonymous user session. For this prototype, we'll use the session UID.
           userId: user?.uid || 'guest_locator_unit'
         }),
       });
@@ -96,7 +98,6 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
       console.log(`[AI DISPATCH] Initiating schedule call to lead: ${name}`);
       console.log(`[AI DISPATCH] Initiating confirmation call to academy staff for ${academy.name}`);
 
-      // We simulate the AI "calls" by noting the protocol start
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       setIsSent(true);
@@ -105,7 +106,6 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
         description: "Mission request received. Magic link dispatched. AI dispatch sequence initiated.",
       });
 
-      // Cleanup
       setTimeout(() => {
         setShowTrialForm(false);
         setIsSent(false);
@@ -144,9 +144,14 @@ export function AcademyDetailsDialog({ academy, onClose }: AcademyDetailsDialogP
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
           <div className="absolute bottom-6 left-8 right-8">
-            <h2 className="text-3xl font-headline text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-lg">
-              {academy.name}
-            </h2>
+            <DialogHeader className="p-0 space-y-0 text-left">
+              <DialogTitle className="text-3xl font-headline text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-lg">
+                {academy.name}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Detailed tactical intelligence for the {academy.name} unit.
+              </DialogDescription>
+            </DialogHeader>
             <div className="flex items-center gap-3 mt-3">
               {academy.rating && (
                 <div className="flex items-center gap-1 bg-primary px-3 py-1 rounded-none text-white text-xs font-black italic">
