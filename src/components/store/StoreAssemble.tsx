@@ -25,6 +25,7 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
   const shieldRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const overlaysRef = useRef<HTMLDivElement>(null);
+  const registryOverlaysRef = useRef<HTMLDivElement>(null);
   const photoGridRef = useRef<HTMLDivElement>(null);
   const topMarqueeRef = useRef<HTMLDivElement>(null);
   const bottomMarqueeRef = useRef<HTMLDivElement>(null);
@@ -112,7 +113,7 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
       { scale: 1, opacity: 1, filter: "blur(0px)", z: 0, ease: "power2.out", duration: 1, force3D: true }
     );
 
-    // Fade out titles and overlays, manifest grid and marquees
+    // Fade out titles and initial overlays, manifest grid and marquees
     tl.to([titleRef.current, overlaysRef.current], {
       scale: (i) => i === 0 ? 10 : 1,
       opacity: 0,
@@ -133,9 +134,28 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
       const ref = itemRefs.current[index];
       if (!ref) return;
 
+      // Manifest the registry atmosphere (blue base + shadow) precisely with the first card
+      if (index === 0) {
+        tl.to(registryOverlaysRef.current, {
+          opacity: 1,
+          duration: 0.8,
+          ease: "power2.out"
+        }, ">");
+      }
+
       tl.fromTo(ref,
         { scale: 0.2, opacity: 0, z: -800, filter: "blur(20px)", x: index % 2 === 0 ? 200 : -200 },
-        { scale: 1, opacity: 1, z: 0, filter: "blur(0px)", x: 0, ease: "power3.out", duration: 1.2, force3D: true }
+        { 
+          scale: 1, 
+          opacity: 1, 
+          z: 0, 
+          filter: "blur(0px)", 
+          x: 0, 
+          ease: "power3.out", 
+          duration: 1.2, 
+          force3D: true 
+        },
+        index === 0 ? "<" : undefined
       );
 
       if (index < items.length - 1) {
@@ -196,7 +216,7 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
         <PhotoGrid photoUrls={photoUrls} />
       </div>
 
-      {/* Cinematic Overlays */}
+      {/* Cinematic Intro Overlays */}
       <div ref={overlaysRef} className="absolute inset-0 z-50 pointer-events-none">
         {/* Strong Horizontal Shade (Top and Bottom) */}
         <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-95" />
@@ -207,6 +227,14 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
           <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
           <div className="h-full w-full absolute top-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
         </div>
+      </div>
+
+      {/* Registry Phase Atmosphere (Blue + Shadow) */}
+      <div ref={registryOverlaysRef} className="absolute inset-0 z-10 pointer-events-none opacity-0">
+        {/* Deep Horizontal Shade (Top and Bottom) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-95" />
+        {/* Tactical Blue Wash - manifested when items appear to "bring the blue background" back */}
+        <div className="absolute inset-0 bg-[#002B5B]/40" />
       </div>
 
       {/* Shield Logo Scene */}
