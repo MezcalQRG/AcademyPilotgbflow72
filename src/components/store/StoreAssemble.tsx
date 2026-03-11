@@ -198,8 +198,11 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
 
       {/* Cinematic Overlays */}
       <div ref={overlaysRef} className="absolute inset-0 z-50 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+        {/* Strong Horizontal Shade (Top and Bottom) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-95" />
+        {/* Subtle Lateral Shade (Left and Right) */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60" />
+        
         <div className="absolute inset-0 opacity-10">
           <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
           <div className="h-full w-full absolute top-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_40px,rgba(255,255,255,0.05)_40px,rgba(255,255,255,0.05)_41px)]" />
