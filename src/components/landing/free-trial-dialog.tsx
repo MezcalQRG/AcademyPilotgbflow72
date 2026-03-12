@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from 'next/image';
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ const formSchema = z.object({
 });
 
 export function FreeTrialDialog({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
@@ -60,6 +62,14 @@ export function FreeTrialDialog({ children }: { children: React.ReactNode }) {
           if (prev <= 1) {
             setIsCalling(false);
             setIsOpen(false);
+            
+            // REDIRECTION PROTOCOL: Transitioning to Annual Strategic Plan
+            const plan = "Plan Anual";
+            const price = "1800";
+            const details = "Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi.";
+            
+            router.push(`/checkout?plan=${encodeURIComponent(plan)}&price=${price}&details=${encodeURIComponent(details)}`);
+            
             return 60;
           }
           return prev - 1;
@@ -85,7 +95,7 @@ export function FreeTrialDialog({ children }: { children: React.ReactNode }) {
       clearInterval(countdownInterval);
       clearInterval(typingInterval);
     };
-  }, [isCalling, fullPhone]);
+  }, [isCalling, fullPhone, router]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
