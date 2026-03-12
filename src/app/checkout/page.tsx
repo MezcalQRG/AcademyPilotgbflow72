@@ -13,6 +13,8 @@ import { getAcademyPhotos } from "@/app/actions";
 import { BackgroundPhotoRotation } from "@/components/landing/background-photo-rotation";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -22,6 +24,7 @@ function CheckoutContent() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [coupon, setCoupon] = useState("");
 
   const planTitle = searchParams.get("plan") || "Strategic Plan";
   const planDetails = searchParams.get("details") || "Mission initialization details pending.";
@@ -61,7 +64,7 @@ function CheckoutContent() {
     // Simulated tactical handshake
     await new Promise((resolve) => setTimeout(resolve, 2000));
     
-    if (data.coupon?.toUpperCase() === "BYPASS") {
+    if (coupon.toUpperCase() === "BYPASS") {
       toast({
         title: "PROTOCOL BYPASS ACTIVE",
         description: "Credentials verified via bypass sector. Initializing immediate deployment.",
@@ -119,6 +122,25 @@ function CheckoutContent() {
                 <h1 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter leading-tight">{planTitle}</h1>
                 <div className="inline-block bg-primary text-white px-4 py-1 text-xl md:text-2xl font-black italic shadow-lg">
                   ${price}.00
+                </div>
+
+                {/* Bypass / Coupon Sector - Now under the price on the left side */}
+                <div className="mt-6 max-w-xs space-y-3 bg-white/10 p-4 border-2 border-white/20 backdrop-blur-sm">
+                  <Label htmlFor="coupon" className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
+                    <Zap className="h-3 w-3 fill-current text-primary" /> Bypass Protocol
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      id="coupon" 
+                      placeholder="ENTER CODE..." 
+                      value={coupon} 
+                      onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+                      className="rounded-none border-2 border-white/30 h-10 font-black uppercase italic text-xs bg-black/20 text-white focus-visible:ring-primary placeholder:text-white/30" 
+                    />
+                  </div>
+                  <p className="text-[8px] font-bold uppercase tracking-tighter text-white/60 italic">
+                    Use &apos;BYPASS&apos; to fast-track initialization protocol.
+                  </p>
                 </div>
               </div>
 

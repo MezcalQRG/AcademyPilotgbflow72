@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Calendar, User, ShieldCheck, Mail, Phone, Zap } from "lucide-react";
+import { CreditCard, Calendar, User, ShieldCheck, Mail, Phone } from "lucide-react";
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, i) => (currentYear + i).toString().slice(-2));
@@ -36,7 +36,6 @@ const paymentMethodSchema = z.object({
   expiryMonth: z.string().min(1),
   expiryYear: z.string().min(1),
   cvv: z.string().min(3).max(4).regex(/^\d+$/),
-  coupon: z.string().optional(),
   cardType: z.enum(["visa", "mastercard", "amex", "discover", "other"]).optional(),
 });
 
@@ -60,7 +59,6 @@ export function PaymentMethodForm({ onSubmit, onCancel, initialData, isEditing =
       expiryMonth: initialData?.expiryMonth || "",
       expiryYear: initialData?.expiryYear || "",
       cvv: "",
-      coupon: "",
       cardType: initialData?.cardType || "other",
     },
   });
@@ -185,25 +183,6 @@ export function PaymentMethodForm({ onSubmit, onCancel, initialData, isEditing =
             />
           </div>
         </div>
-
-        <Separator className="bg-border h-0.5" />
-
-        <FormField
-          control={form.control}
-          name="coupon"
-          render={({ field }) => (
-            <FormItem className="bg-primary/5 p-4 border-2 border-primary/20">
-              <FormLabel className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-primary">
-                <Zap className="h-3 w-3 fill-current" /> Bypass / Coupon Code
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="ENTER CODE..." {...field} className="rounded-none border-2 border-primary/30 h-10 font-black uppercase italic text-xs focus-visible:ring-primary" />
-              </FormControl>
-              <FormDescription className="text-[8px] font-bold uppercase tracking-tighter opacity-60">Use &apos;BYPASS&apos; to fast-track initialization protocol.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <div className="flex justify-end gap-3 pt-4 border-t border-border">
           <Button type="button" variant="outline" onClick={onCancel} className="rounded-none font-black uppercase italic tracking-widest border-2 text-[10px] h-12 flex-1">Abort</Button>
