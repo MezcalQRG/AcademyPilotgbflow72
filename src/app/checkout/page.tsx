@@ -48,20 +48,12 @@ function CheckoutContent() {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isSuccess && countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((prev) => prev + 1);
-      }, 1000);
-    } else if (isSuccess && countdown === 3) {
-      // Countdown corrected to 3-2-1 logic or redirected if needed
-      // Actually user wanted 3 second countdown loading animation
-    }
-    
-    if (isSuccess && countdown > 0) {
         timer = setInterval(() => {
             setCountdown((prev) => prev - 1);
         }, 1000);
     } else if (isSuccess && countdown === 0) {
-        router.push("/dashboard");
+        // Redirection protocol: Forwarding unit to the Student Hub
+        router.push("/student/dashboard");
     }
 
     return () => clearInterval(timer);
@@ -79,6 +71,12 @@ function CheckoutContent() {
         title: "PROTOCOL AUTHORIZED",
         description: "Tactical code BYPASS-123 validated. Unit cost recalibrated to $0.00.",
       });
+
+      // TRIGGER SUCCESS SEQUENCE AFTER ANIMATION
+      // Wait 1 second for the strikethrough and price shift to be seen by the operator
+      setTimeout(() => {
+        setIsSuccess(true);
+      }, 1000);
     } else {
       toast({
         variant: "destructive",
