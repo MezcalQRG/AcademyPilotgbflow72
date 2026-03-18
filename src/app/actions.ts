@@ -1,4 +1,3 @@
-
 'use server';
 
 import { generateCampaignStructure } from "@/ai/flows/generate-campaign-structure";
@@ -30,6 +29,7 @@ export async function initiateTacticalLoginAction(email: string) {
     
     // 1. Generate the secure tactical link
     const actionCodeSettings = {
+      // Direct link back to the pilot dashboard
       url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://graciebarra.ai'}/dashboard?email=${encodeURIComponent(email)}`,
       handleCodeInApp: true,
     };

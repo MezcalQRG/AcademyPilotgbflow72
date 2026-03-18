@@ -1,515 +1,64 @@
 {
   "entities": {
     "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
+      "description": "Academy owner or student profile.",
       "type": "object",
-      "description": "Represents an academy owner who uses the Academia Pilot platform. This entity stores profile information, excluding authentication credentials.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The primary email address of the academy owner.",
-          "format": "email"
-        },
-        "academyName": {
-          "type": "string",
-          "description": "The name of the academy owned by this user."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the user profile was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the user profile was last updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "student"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "email",
-        "academyName",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "AdCampaign": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AdCampaign",
-      "type": "object",
-      "description": "Represents a configured advertising campaign launched by an academy owner on platforms like Meta, including AI-generated content details.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the AdCampaign entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile who owns this ad campaign. (Relationship: UserProfile 1:N AdCampaign)"
-        },
-        "name": {
-          "type": "string",
-          "description": "A user-defined name for the advertising campaign."
-        },
-        "platform": {
-          "type": "string",
-          "description": "The advertising platform where the campaign is launched (e.g., 'Meta')."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current operational status of the ad campaign (e.g., 'active', 'paused', 'draft')."
-        },
-        "startDate": {
-          "type": "string",
-          "description": "The planned start date and time for the campaign.",
-          "format": "date-time"
-        },
-        "endDate": {
-          "type": "string",
-          "description": "The planned end date and time for the campaign (optional).",
-          "format": "date-time"
-        },
-        "budget": {
-          "type": "number",
-          "description": "The total monetary budget allocated for the ad campaign."
-        },
-        "targetAudienceDescription": {
-          "type": "string",
-          "description": "A textual description of the target audience defined for this campaign."
-        },
-        "adCopyGenerated": {
-          "type": "string",
-          "description": "The AI-generated ad copy text used for the campaign."
-        },
-        "imagePromptsGenerated": {
-          "type": "array",
-          "description": "An array of text prompts used by the generative AI for creating ad images.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "imageUrls": {
-          "type": "array",
-          "description": "An array of URLs pointing to the AI-generated ad images used in the campaign.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the ad campaign was initially created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the ad campaign configuration was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "platform",
-        "status",
-        "startDate",
-        "budget",
-        "targetAudienceDescription",
-        "adCopyGenerated",
-        "imagePromptsGenerated",
-        "imageUrls",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "OmnichannelAssistant": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OmnichannelAssistant",
-      "type": "object",
-      "description": "Represents the configuration for an AI-driven customer service assistant operating across multiple messaging channels (WhatsApp, Messenger, SMS) for lead qualification.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the OmnichannelAssistant entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile who configured this assistant. (Relationship: UserProfile 1:N OmnichannelAssistant)"
-        },
-        "name": {
-          "type": "string",
-          "description": "A user-defined name for the omnichannel assistant."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current operational status of the assistant (e.g., 'active', 'inactive', 'draft')."
-        },
-        "welcomeMessage": {
-          "type": "string",
-          "description": "The initial message sent by the assistant when a conversation begins on any channel."
-        },
-        "qualificationQuestions": {
-          "type": "array",
-          "description": "An ordered array of questions the assistant uses to qualify leads during conversations.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "metaIntegrationId": {
-          "type": "string",
-          "description": "Reference to the IntegrationConfig for Meta (e.g., for Messenger API usage). (Relationship: IntegrationConfig 1:N OmnichannelAssistant)"
-        },
-        "twilioIntegrationId": {
-          "type": "string",
-          "description": "Reference to the IntegrationConfig for Twilio (for WhatsApp and SMS integration). (Relationship: IntegrationConfig 1:N OmnichannelAssistant)"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the omnichannel assistant configuration was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the omnichannel assistant configuration was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "status",
-        "welcomeMessage",
-        "qualificationQuestions",
-        "metaIntegrationId",
-        "twilioIntegrationId",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "VoiceAssistant": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "VoiceAssistant",
-      "type": "object",
-      "description": "Represents the configuration for an AI-powered voice agent designed for lead qualification through automated phone calls.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the VoiceAssistant entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile who configured this voice assistant. (Relationship: UserProfile 1:N VoiceAssistant)"
-        },
-        "name": {
-          "type": "string",
-          "description": "A user-defined name for the voice assistant."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current operational status of the voice assistant (e.g., 'active', 'inactive', 'draft')."
-        },
-        "phoneNumber": {
-          "type": "string",
-          "description": "The phone number assigned to and managed by this voice assistant."
-        },
-        "initialGreeting": {
-          "type": "string",
-          "description": "The script or message the voice assistant uses to greet callers."
-        },
-        "qualificationScript": {
-          "type": "string",
-          "description": "The detailed script or conversational flow the voice assistant follows to qualify leads."
-        },
-        "elevenLabsIntegrationId": {
-          "type": "string",
-          "description": "Reference to the IntegrationConfig for ElevenLabs (for voice synthesis). (Relationship: IntegrationConfig 1:N VoiceAssistant)"
-        },
-        "twilioIntegrationId": {
-          "type": "string",
-          "description": "Reference to the IntegrationConfig for Twilio (for voice calling services). (Relationship: IntegrationConfig 1:N VoiceAssistant)"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the voice assistant configuration was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the voice assistant configuration was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "status",
-        "phoneNumber",
-        "initialGreeting",
-        "qualificationScript",
-        "elevenLabsIntegrationId",
-        "twilioIntegrationId",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "IntegrationConfig": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "IntegrationConfig",
-      "type": "object",
-      "description": "Manages configuration and non-sensitive identifiers for external API integrations (e.g., Meta, Twilio, ElevenLabs, preferred AI models). Sensitive API keys are not directly stored in this model.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the IntegrationConfig entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile who owns this integration configuration. (Relationship: UserProfile 1:N IntegrationConfig)"
-        },
-        "name": {
-          "type": "string",
-          "description": "A user-defined friendly name for the integration (e.g., 'My Meta Ads Account', 'Twilio SMS API')."
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of external service this integration connects to (e.g., 'Meta', 'Twilio', 'ElevenLabs', 'AIModel')."
-        },
-        "apiKeyIdentifier": {
-          "type": "string",
-          "description": "A public or non-sensitive identifier associated with the API key (e.g., Meta App ID, Twilio Account SID). The actual secret key is assumed to be managed securely by an external system or secure vault."
-        },
-        "configurationDetails": {
-          "type": "string",
-          "description": "A JSON string storing additional, non-sensitive configuration parameters specific to the integration (e.g., webhook URLs, callback settings, region). This field is generic to allow various integration settings."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current operational status of the integration (e.g., 'active', 'inactive', 'pending configuration')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the integration configuration was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the integration configuration was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "type",
-        "apiKeyIdentifier",
-        "status",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "email", "role"]
     },
     "Lead": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Lead",
+      "description": "Prospective student captured via automation.",
       "type": "object",
-      "description": "Represents a potential customer (lead) captured and qualified through various AI automation features of the Academia Pilot app.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Lead entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile (academy owner) who generated this lead. (Relationship: UserProfile 1:N Lead)"
-        },
-        "source": {
-          "type": "string",
-          "description": "The origin channel or campaign that initially generated this lead (e.g., 'Meta Ad Campaign', 'WhatsApp Assistant', 'Voice Agent')."
-        },
-        "sourceEntityId": {
-          "type": "string",
-          "description": "Reference to the specific AdCampaign, OmnichannelAssistant, or VoiceAssistant entity that captured this lead. (Relationship: AdCampaign/OmnichannelAssistant/VoiceAssistant 1:N Lead)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The full name of the captured lead."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the lead (optional).",
-          "format": "email"
-        },
-        "phoneNumber": {
-          "type": "string",
-          "description": "The phone number of the lead (optional)."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current qualification status of the lead (e.g., 'new', 'qualified', 'contacted', 'unqualified')."
-        },
-        "qualificationDetails": {
-          "type": "string",
-          "description": "A text field for notes or a summary of the lead qualification process, potentially including details gathered by an AI agent."
-        },
-        "capturedAt": {
-          "type": "string",
-          "description": "Timestamp when the lead was initially captured.",
-          "format": "date-time"
-        },
-        "lastUpdated": {
-          "type": "string",
-          "description": "Timestamp when the lead's information or status was last updated.",
-          "format": "date-time"
-        },
-        "metadata": {
-          "type": "string",
-          "description": "A JSON string for storing additional, unstructured key-value data collected about the lead (e.g., 'interestedCourse', 'preferredTime'). This allows flexibility for various lead data points."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "source",
-        "sourceEntityId",
-        "name",
-        "status",
-        "capturedAt",
-        "lastUpdated"
-      ]
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "status": { "type": "string" },
+        "source": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "AutomationRule": {
+      "title": "AutomationRule",
+      "description": "Autonomous flow logic defined by admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "trigger": { "type": "string" },
+        "status": { "type": "string" },
+        "actions": { "type": "array", "items": { "type": "object" } }
+      }
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "magic-link"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/user_profiles/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores individual user profile information, owned by the user matching {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the authenticated user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/user_profiles/{userId}/ad_campaigns/{campaignId}",
-        "definition": {
-          "entityName": "AdCampaign",
-          "schema": {
-            "$ref": "#/backend/entities/AdCampaign"
-          },
-          "description": "Stores advertising campaigns configured by a specific user. Owned by the user matching {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the authenticated user who owns this campaign."
-            },
-            {
-              "name": "campaignId",
-              "description": "The unique ID of the ad campaign."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/user_profiles/{userId}/omnichannel_assistants/{assistantId}",
-        "definition": {
-          "entityName": "OmnichannelAssistant",
-          "schema": {
-            "$ref": "#/backend/entities/OmnichannelAssistant"
-          },
-          "description": "Stores configurations for omnichannel AI assistants, owned by the user matching {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the authenticated user who owns this assistant."
-            },
-            {
-              "name": "assistantId",
-              "description": "The unique ID of the omnichannel assistant."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/user_profiles/{userId}/voice_assistants/{assistantId}",
-        "definition": {
-          "entityName": "VoiceAssistant",
-          "schema": {
-            "$ref": "#/backend/entities/VoiceAssistant"
-          },
-          "description": "Stores configurations for AI voice assistants, owned by the user matching {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the authenticated user who owns this assistant."
-            },
-            {
-              "name": "assistantId",
-              "description": "The unique ID of the voice assistant."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/user_profiles/{userId}/integration_configs/{configId}",
-        "definition": {
-          "entityName": "IntegrationConfig",
-          "schema": {
-            "$ref": "#/backend/entities/IntegrationConfig"
-          },
-          "description": "Stores API integration configurations and non-sensitive identifiers for external services, owned by the user matching {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the authenticated user who owns this integration configuration."
-            },
-            {
-              "name": "configId",
-              "description": "The unique ID of the integration configuration."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/user_profiles/{userId}/leads/{leadId}",
-        "definition": {
-          "entityName": "Lead",
-          "schema": {
-            "$ref": "#/backend/entities/Lead"
-          },
-          "description": "Stores lead information captured through various AI automation features, owned by the user matching {userId}. Includes denormalized `userId` for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the authenticated user (academy owner) who generated this lead."
-            },
-            {
-              "name": "leadId",
-              "description": "The unique ID of the lead."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The recommended Firestore structure is designed to be secure, scalable, and debuggable, strictly adhering to the core design principles and mandates. All user-specific data is organized under a hierarchical path `/user_profiles/{userId}/`, ensuring robust authorization independence and clear ownership.\n\n**Authorization Independence:** Every entity (`UserProfile`, `AdCampaign`, `OmnichannelAssistant`, `VoiceAssistant`, `IntegrationConfig`, `Lead`) that belongs to a specific user is nested directly under `/user_profiles/{userId}/`. This means that the `userId` (representing `request.auth.uid`) is explicitly present in the Firestore path for every document. For example, an `AdCampaign` for a user will be stored at `/user_profiles/{userId}/ad_campaigns/{campaignId}`. This design eliminates the need for `get()` calls in Firestore security rules to ascertain ownership or permissions, as the `userId` is directly available in the request path parameters. This allows for atomic operations (transactions, batches) to proceed without breaking rule dependencies.\n\n**QAPs (Rules are not Filters):** The structural segregation achieved by nesting all user-owned data under `user_profiles/{userId}` inherently supports queryable authorization patterns (QAPs). Since each collection within a user's subtree exclusively contains documents owned by that user, security rules can simply enforce `request.auth.uid == userId` for all read and write operations. This ensures that `list` queries automatically respect ownership, as a user can only query within their own `/user_profiles/{userId}/` path. No additional filtering within security rules is required to prevent data leakage across users, making rules simple, explicit, and highly performant. The `status` fields within entities (like `AdCampaign.status`) are used for explicit state modeling, allowing client-side queries to filter without impacting security rules.\n\n**Design Strategy Application:**\n*   **Authorization Independence via Denormalization:** The `userId` is denormalized into the path and also exists as a field within most documents (e.g., `Lead.userId`), reinforcing ownership and providing flexibility for queries while ensuring rules don't depend on parent document reads.\n*   **Structural Segregation:** Each collection (e.g., `ad_campaigns`, `leads`) under a user's profile is homogeneous in its security posture: all documents within it are owned by that specific `userId`. There's no mixing of public/private or shared/unshared data within these collections.\n*   **Access Modeling:** Path-based ownership (`/user_profiles/{userId}/...`) is consistently used for all private, user-owned data. This provides a clear and consistent model for securing individual user data.\n*   **Data Clarity and Predictability:** Wildcards like `{userId}`, `{campaignId}`, `{assistantId}`, `{configId}`, and `{leadId}` are descriptive. The `status` field is consistently used across relevant entities for explicit state management. No dynamic keys are introduced."
+    "/user_profiles/{userId}": {
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
+      "description": "Root profile for the unit."
+    },
+    "/user_profiles/{userId}/leads/{leadId}": {
+      "schema": { "$ref": "#/backend/entities/Lead" },
+      "description": "Recruitment registry for the academy."
+    },
+    "/user_profiles/{userId}/automation_rules/{ruleId}": {
+      "schema": { "$ref": "#/backend/entities/AutomationRule" },
+      "description": "Autonomous mission protocols."
+    }
   }
 }
