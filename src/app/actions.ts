@@ -1,3 +1,4 @@
+
 'use server';
 
 import { generateCampaignStructure } from "@/ai/flows/generate-campaign-structure";
@@ -14,6 +15,66 @@ import type { CampaignStructure, Campaign, PublishResult, AdImage } from "@/lib/
 import type { AgentProfile } from "@/lib/synth-types";
 import { geocodeAddress, findFranchise } from '@/lib/academies';
 import { unstable_cache as cache } from 'next/cache';
+import { getFirebaseAdmin } from "@/lib/firebase-admin";
+import axios from 'axios';
+
+const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || 'https://2cgrii72ke.execute-api.us-east-1.amazonaws.com/orchestrate';
+const ORCHESTRATOR_TOKEN = process.env.ORCHESTRATOR_TOKEN || '123456789';
+
+/**
+ * High-authority directive to initiate a tactical magic link login via AWS SES.
+ */
+export async function initiateTacticalLoginAction(email: string) {
+  try {
+    const admin = getFirebaseAdmin();
+    
+    // 1. Generate the secure tactical link
+    const actionCodeSettings = {
+      url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://graciebarra.ai'}/dashboard?email=${encodeURIComponent(email)}`,
+      handleCodeInApp: true,
+    };
+    
+    const loginLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
+    
+    // 2. Dispatch the link via AWS Orchestrator SES sector
+    const result = await dispatchOrchestratorAction('SEND_EMAIL', {
+      userEmail: email,
+      templateType: 'magic-link',
+      userData: {
+        loginUrl: loginLink,
+        name: email.split('@')[0].toUpperCase(),
+      }
+    });
+
+    return result;
+  } catch (error: any) {
+    console.error('[AUTH ERROR] Handshake initialization failure:', error);
+    return { error: error.message };
+  }
+}
+
+/**
+ * Universal Adapter for the AWS Tactical Orchestrator.
+ * Funnels mission-critical requests to the centralized AWS gateway.
+ */
+export async function dispatchOrchestratorAction(action: string, payload: any) {
+  try {
+    const response = await axios.post(ORCHESTRATOR_URL, {
+      action,
+      payload
+    }, {
+      headers: {
+        'Authorization': `Bearer ${ORCHESTRATOR_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(`[ORCHESTRATOR ERROR] Action ${action} failed:`, error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'Operational link failure');
+  }
+}
 
 export async function createCampaignAction(data: {
   adAccountID: string;

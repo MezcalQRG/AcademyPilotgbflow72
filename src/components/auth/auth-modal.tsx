@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -12,8 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/firebase';
-import { initiateMagicLinkSignIn } from '@/firebase/auth-utils';
+import { initiateTacticalLoginAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Zap, Mail, Loader2, UserPlus, ArrowRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -28,26 +28,31 @@ export function AuthModal({ mode, trigger }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
-  const auth = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !auth) return;
+    if (!email) return;
 
     setIsLoading(true);
     try {
-      await initiateMagicLinkSignIn(auth, email);
+      // Mission Direct: Dispatch magic link via the tactical server action
+      const result = await initiateTacticalLoginAction(email);
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       setIsSent(true);
       toast({
         title: "DISPATCH COMPLETE",
-        description: "Secure magic link transmitted to your inbox.",
+        description: "Secure tactical link transmitted via AWS SES.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "DISPATCH FAILURE",
-        description: error.message || "Failed to transmit authentication link.",
+        description: error.message || "Failed to transmit authentication link through the matrix.",
       });
     } finally {
       setIsLoading(false);
@@ -96,7 +101,7 @@ export function AuthModal({ mode, trigger }: AuthModalProps) {
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-16 shadow-xl text-lg"
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic tracking-widest h-16 shadow-xl text-lg mt-4"
               >
                 {isLoading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
@@ -111,9 +116,9 @@ export function AuthModal({ mode, trigger }: AuthModalProps) {
                 <Mail className="h-10 w-10 text-primary -rotate-45" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Link Dispatched</h3>
+                <h3 className="text-2xl font-black uppercase italic tracking-tighter text-primary">Link Dispatched</h3>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground max-w-[200px] mx-auto">
-                  Check your communication grid for the secure handshake link.
+                  Check your communication grid for the secure SES handshake link.
                 </p>
               </div>
             </div>
@@ -133,11 +138,6 @@ export function AuthModal({ mode, trigger }: AuthModalProps) {
                   CREATE {mode === 'admin' ? 'ACADEMY' : 'STUDENT'} ACCOUNT <UserPlus className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              {mode === 'admin' && (
-                <Button asChild variant="ghost" className="rounded-none font-black uppercase italic text-[9px] tracking-widest text-muted-foreground hover:text-primary h-10">
-                  <Link href="/checkout?mode=student">Switch to Student Onboarding <ArrowRight className="ml-2 h-3 w-3" /></Link>
-                </Button>
-              )}
             </div>
           </div>
         </div>
