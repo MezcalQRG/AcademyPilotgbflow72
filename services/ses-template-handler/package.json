@@ -1,0 +1,10 @@
+{
+  "name": "ses-template-handler",
+  "version": "1.0.0",
+  "description": "Lambda handler to send templated emails via SES, invoked by the Orchestrator",
+  "main": "index.js",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "aws-sdk": "^2.1481.0"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "await-human-confirmation-handler",
+  "version": "0.1.0",
+  "description": "Lambda handler to trigger outbound confirmation call via SIP trunk",
+  "main": "handler.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {}
+}

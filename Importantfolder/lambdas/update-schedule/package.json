@@ -1,0 +1,9 @@
+{
+  "name": "update-schedule",
+  "version": "1.0.0",
+  "description": "Update weekly schedule in Firestore",
+  "main": "handler.js",
+  "dependencies": {
+    "firebase-admin": "^11.10.0"
+  }
+}

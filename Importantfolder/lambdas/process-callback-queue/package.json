@@ -1,0 +1,13 @@
+{
+  "name": "process-callback-queue-handler",
+  "version": "0.1.0",
+  "description": "Lambda handler to process callback queue items",
+  "main": "handler.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.10.0"
+  }
+}

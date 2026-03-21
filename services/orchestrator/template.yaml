@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Universal Tactical Orchestrator
+
+  This service acts as a secure entry point for backend operations. It authenticates
+  requests and delegates them to specialized handler functions based on the 'action' parameter.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: nodejs18.x
+
+Parameters:
+  AddLeadFunctionName:
+    Type: String
+    Description: The name of the Add Lead Lambda function.
+  SesHandlerFunctionName:
+    Type: String
+    Description: The name of the SES Handler Lambda function.
+  GetLeadsFunctionName:
+    Type: String
+    Description: The name of the Get Leads Lambda function.
+
+Resources:
+  OrchestratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UniversalTacticalOrchestrator
+      CodeUri: ./
+      Handler: index.handler
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref AddLeadFunctionName
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SesHandlerFunctionName
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GetLeadsFunctionName
+      Environment:
+        Variables:
+          AUTH_TOKEN: '{{resolve:ssm:/app/auth-token:1}}'
+          ADD_LEAD_FUNCTION_NAME: !Ref AddLeadFunctionName
+          SES_HANDLER_FUNCTION_NAME: !Ref SesHandlerFunctionName
+          GET_LEADS_FUNCTION_NAME: !Ref GetLeadsFunctionName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /orchestrate
+            Method: post
+
+Outputs:
+  OrchestratorApiUrl:
+    Description: "API Gateway endpoint URL for the Orchestrator function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orchestrate/"

@@ -1,0 +1,11 @@
+{
+  "name": "trigger-outbound-call-handler",
+  "version": "0.1.0",
+  "description": "Lambda handler to trigger ElevenLabs outbound calls to academy",
+  "main": "handler.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {}
+}

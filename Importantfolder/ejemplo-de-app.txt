@@ -1,0 +1,120 @@
+
+IDEA / PROPÓSITO
+La app es un sistema de automatización comercial para academias (ej. Gracie Barra). Integra:
+- Captación y gestión de leads.
+- Automatización de marketing (Meta Ads).
+- Atención multicanal (WhatsApp/Messenger/SMS).
+- Llamadas con IA (Twilio + ElevenLabs).
+- Gestión académica, KPIs y ventas de inventario.
+
+ESTRUCTURA FUNCIONAL Y FLUJO
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/App.tsx
+- Controla el flujo principal con `appState`: `landing → auth → onboarding → dashboard`.
+- Persistencia de datos con `useKV` (Spark KV storage).
+- Estado clave:
+  - `current-user`
+  - `business-config`
+  - `api-credentials`
+
+COMPONENTES FUNCIONALES Y PROPÓSITO
+
+1. LandingPage
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/LandingPage.tsx
+- Componente de entrada que dispara el flujo de autenticación.
+- Props: `onGetStarted`, `onSignIn`.
+
+2. AuthForm
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/AuthForm.tsx
+- Autenticación simulada (mock).
+- Genera usuario local y persiste con `useKV`.
+- Modo `signin` y `signup`.
+- Valida campos y emite notificaciones.
+
+3. OnboardingWizard
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/OnboardingWizard.tsx
+- Wizard en 3 pasos para configurar la app:
+  1) Info del negocio (BusinessConfig).
+  2) Credenciales externas (APICredentials).
+  3) Resumen final.
+- Valida pasos antes de avanzar.
+- Al finalizar, guarda config en KV y desbloquea Dashboard.
+
+4. Dashboard (Shell)
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/Dashboard.tsx
+- Navegación interna por `currentView`.
+- Renderiza las vistas funcionales.
+- Sidebar define las secciones del negocio:
+  - overview, students, kpis, campaigns, messages, calls, landing-pages, inventory, settings.
+
+5. OverviewView (Dashboard)
+- Resumen de KPIs rápidos y conversaciones recientes.
+- Métricas simuladas.
+
+6. MessagesView
+- Vista placeholder para conversaciones multicanal.
+- Prepara el espacio para integrar data real.
+
+7. CallsView
+- Historial de llamadas (placeholder).
+- Indica dependencia de Twilio/ElevenLabs.
+
+8. LandingPagesView
+- Placeholder para administración de landing pages.
+
+9. CampaignManager
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/CampaignManager.tsx
+- CRUD local de campañas con `useKV`.
+- Condiciona UI si no hay `apiCredentials.meta.accessToken`.
+- Conecta a Meta Ads API:
+  - getAdAccounts
+  - createCampaign
+  - createAdSet
+- IA asistida:
+  - `generateAdCopyWithAI`
+  - `generateAdImageWithAI`
+
+10. SettingsManager
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/SettingsManager.tsx
+- Administra y edita:
+  - BusinessConfig
+  - APICredentials
+- Incluye test de conexión real con Meta Ads API.
+
+11. StudentManagement
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/StudentManagement.tsx
+- Gestión de alumnos y leads:
+  - filtrado por estados
+  - indicadores de riesgo, morosidad
+- Usa `useKV` para leer `students` y `leads`.
+
+12. KPIDashboard
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/KPIDashboard.tsx
+- Renderiza métricas agregadas de negocio:
+  - ingresos, leads, asistencia, morosidad, retención, inventario
+- Data mock inicial en KV.
+
+13. InventoryManager
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/components/InventoryManager.tsx
+- Control de stock, alertas, ventas mensuales.
+- Usa `useKV` para leer `inventory` y `sales`.
+
+CAPAS DE SOPORTE
+Tipos de datos
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/lib/types.ts
+- Modelos: User, BusinessConfig, APICredentials, Campaign, Lead, Student, KPIMetrics, InventoryItem, Sale, etc.
+
+Meta Ads API Wrapper
+Archivo: /Users/aztecgod/Documents/New project/ai-powered-business/src/lib/meta-ads-api.ts
+- Cliente HTTP para Graph API:
+  - adaccounts
+  - campaigns
+  - adsets
+  - ads
+  - insights
+- Helpers para texto e imagen con IA.
+
+Persistencia
+- `useKV` funciona como base local para prototipado sin backend.
+
+OBJETIVO DEL AGENTE AI ENCARGADO
+Mantener el flujo funcional estable, extender módulos con lógica real y preparar el sistema para integrar backend/APIs reales sin romper los flujos del dashboard.

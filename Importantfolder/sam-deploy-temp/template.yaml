@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  SESTemplateHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: sesTemplateHandler
+      CodeUri: ./
+      Handler: handler.handler
+      Runtime: nodejs18.x
+      Timeout: 15
+      MemorySize: 256
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:GetTemplate
+                - ses:SendTemplatedEmail
+              Resource: '*'
+      Environment:
+        Variables:
+          SES_FROM_EMAIL: 'no-reply@graciebarra.ai'
+      Events:
+        SESTemplateHandlerPostEndpoint:
+          Type: HttpApi
+          Properties:
+            Path: /send-template-email
+            Method: POST
+
+  OrchestratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: orchestratorHandler
+      CodeUri: ./
+      Handler: orchestrator.handler
+      Runtime: nodejs18.x
+      Timeout: 15
+      MemorySize: 256
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !GetAtt SESTemplateHandlerFunction.Arn
+      Environment:
+        Variables:
+          SES_LAMBDA_FUNCTION_NAME: !Ref SESTemplateHandlerFunction
+      Events:
+        OrchestratorPostEndpoint:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ServerlessHttpApi
+            Path: /orchestrate
+            Method: POST
+
+Outputs:
+  SESTemplateHandlerApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/send-template-email"
+  OrchestratorApi:
+    Description: "Orchestrator endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/orchestrate"

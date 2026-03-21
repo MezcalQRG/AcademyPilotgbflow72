@@ -1,0 +1,13 @@
+{
+  "name": "mark-processed-handler",
+  "version": "0.1.0",
+  "description": "Lambda handler to mark leads as processed after academy call",
+  "main": "handler.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.10.0"
+  }
+}

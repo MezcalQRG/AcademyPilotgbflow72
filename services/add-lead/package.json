@@ -1,0 +1,10 @@
+{
+  "name": "add-lead-handler",
+  "version": "1.0.0",
+  "description": "Lambda handler to add a lead to Firestore, invoked by the Orchestrator",
+  "main": "index.js",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "firebase-admin": "^11.10.0"
+  }
+}

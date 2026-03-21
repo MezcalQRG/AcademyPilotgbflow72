@@ -1,0 +1,13 @@
+{
+  "name": "schedule-lead-callback-handler",
+  "version": "0.1.0",
+  "description": "Lambda handler to add lead to callback queue",
+  "main": "handler.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.10.0"
+  }
+}

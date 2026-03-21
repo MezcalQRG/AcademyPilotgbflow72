@@ -1,0 +1,15 @@
+{
+  "name": "ellevenlabs-aws-lambda-rag",
+  "version": "0.1.0",
+  "description": "AWS Lambda RAG handler that queries Firestore and responds to ElevenLabs webhooks",
+  "main": "handler.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.11.1"
+  }
+}

@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment Variables (NEVER commit these!)
+.env
+.env.local
+.env.*.local
+
+# AWS SAM
+.aws-sam/
+build/
+samconfig.toml
+
+# AWS Credentials & Keys
+*.pem
+*.pub
+~/.aws/
+
+# Firebase Service Account (NEVER commit!)
+*serviceAccountKey.json
+firebase-adminsdk-*.json
+
+# Build outputs
+dist/
+out/
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,9 @@
+{
+  "name": "get-schedule",
+  "version": "1.0.0",
+  "description": "Get weekly schedule and operating hours from Firestore",
+  "main": "handler.js",
+  "dependencies": {
+    "firebase-admin": "^11.10.0"
+  }
+}

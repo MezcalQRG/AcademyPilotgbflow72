@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  get-leads-service
+
+  A microservice to retrieve leads from Firestore, invoked by the Orchestrator.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: nodejs18.x
+
+Resources:
+  GetLeadsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Description: Retrieves leads from Firestore with filtering and sorting.
+      CodeUri: ./
+      Policies:
+        - AWSLambdaBasicExecutionRole
+
+Outputs:
+  GetLeadsFunctionName:
+    Description: "Get Leads Lambda Function Name"
+    Value: !Ref GetLeadsFunction

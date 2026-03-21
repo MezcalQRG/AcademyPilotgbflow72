@@ -1,0 +1,14 @@
+{
+  "name": "transcript-webhook-handler",
+  "version": "0.1.0",
+  "description": "Lambda handler to receive and log transcript from ElevenLabs webhook",
+  "main": "handler.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node handler.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.10.0",
+    "aws-sdk": "^2.1000.0"
+  }
+}

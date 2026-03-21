@@ -1,0 +1,7 @@
+{
+  "name": "conversation-init",
+  "version": "1.0.0",
+  "description": "Conversation initialization webhook - logs call start data",
+  "main": "handler.js",
+  "dependencies": {}
+}

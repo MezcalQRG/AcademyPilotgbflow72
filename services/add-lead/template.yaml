@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Add Lead Service
+
+  This service adds a new lead to the Firestore database.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: nodejs18.x
+
+Resources:
+  AddLeadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: addLeadHandler
+      CodeUri: ./
+      Handler: index.handler
+      Policies:
+        - VPCAccessPolicy: {}
+      Environment:
+        Variables:
+          FIREBASE_SERVICE_ACCOUNT: '{{resolve:ssm:/app/firebase-service-account:1}}'
+
+Outputs:
+  AddLeadFunctionName:
+    Description: "The name of the Add Lead function"
+    Value: !Ref AddLeadFunction

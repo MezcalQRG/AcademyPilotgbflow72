@@ -1,0 +1,93 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Automated Lead Pipeline and Communication Matrix
+
+Resources:
+  AddLeadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: addLeadHandler
+      Handler: lambdas/add-lead/handler.handler
+      CodeUri: ./
+      Runtime: nodejs18.x
+      Timeout: 15
+      MemorySize: 256
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          FIREBASE_PROJECT_ID: 'admin-audit-3f2cd'
+          AUTH_TOKEN: '123456789'
+      Events:
+        AddLeadEndpoint:
+          Type: HttpApi
+          Properties:
+            Path: /add-lead
+            Method: POST
+
+  SESTemplateHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: sesTemplateHandler
+      Handler: lambdas/ses-template-handler/handler.handler
+      CodeUri: ./
+      Runtime: nodejs18.x
+      Timeout: 15
+      MemorySize: 256
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:GetTemplate
+                - ses:SendTemplatedEmail
+              Resource: '*'
+      Environment:
+        Variables:
+          AWS_REGION: 'us-east-2'
+          SES_FROM_EMAIL: 'no-reply@graciebarra.ai'
+      Events:
+        SESTemplateHandlerPostEndpoint:
+          Type: HttpApi
+          Properties:
+            Path: /send-template-email
+            Method: POST
+
+  OrchestratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: orchestratorHandler
+      Handler: lambdas/orchestrator/handler.handler
+      CodeUri: ./
+      Runtime: nodejs18.x
+      Timeout: 30
+      MemorySize: 512
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: "*"
+      Environment:
+        Variables:
+          AUTH_TOKEN: '123456789'
+          SES_HANDLER_FUNCTION_NAME: !Ref SESTemplateHandlerFunction
+          ADD_LEAD_FUNCTION_NAME: !Ref AddLeadFunction
+      Events:
+        OrchestrateEndpoint:
+          Type: HttpApi
+          Properties:
+            Path: /orchestrate
+            Method: POST
+
+Outputs:
+  ApiUrl:
+    Description: "Base URL for the Communication Matrix"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  OrchestratorUrl:
+    Description: "Orchestrator Deployment Endpoint"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/orchestrate"

@@ -1,0 +1,8 @@
+{
+  "name": "ses-template-handler",
+  "version": "1.0.0",
+  "main": "handler.js",
+  "dependencies": {
+    "aws-sdk": "^2.1481.0"
+  }
+}
