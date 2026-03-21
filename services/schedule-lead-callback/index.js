@@ -1,11 +1,11 @@
 const { getFirestore } = require('./firebase-admin');
 
 /**
- * Schedule Lead Callback Service
+ * Schedule Lead Callback Service (Multi-Tenant)
  * 
- * Invoked via a webhook (typically from an agent or another automated process) to add a lead
- * to the callback queue. This creates a new document in the 'callback_queue' Firestore collection
- * with a 'pending' status, which will later be picked up by the 'process-callback-queue' background worker.
+ * Invoked via a webhook to add a lead to the callback queue. It now requires a tenantSlug
+ * to associate the queued item with the correct academy. The background worker will
+ * process these items based on the academy's operational hours.
  */
 exports.handler = async (event) => {
   console.log('--- SCHEDULE LEAD CALLBACK ---');
@@ -13,7 +13,8 @@ exports.handler = async (event) => {
   try {
     const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     
-    // 1. Extract and Normalize Lead Information
+    // 1. Extract and Normalize Lead Information & Tenant Isolation
+    const { tenantSlug } = body;
     const leadPhone = body?.lead_phone || body?.phone || body?.variables?.lead_phone;
     const leadName = body?.lead_name || body?.name || body?.variables?.lead_name || 'Unknown';
     const leadId = body?.lead_id || body?.id || body?.variables?.lead_id || 'N/A';
@@ -21,7 +22,15 @@ exports.handler = async (event) => {
     const clase = body?.clase || body?.variables?.clase || 'Not specified';
     const priority = body?.priority || body?.variables?.priority || 'normal';
 
-    // 2. Validate Required Data
+    // 2. Validate Tenant and Required Data
+    if (!tenantSlug) {
+      console.error('Security Alert: Attempted to schedule a callback without a tenantSlug.');
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ success: false, error: 'Bad Request: tenantSlug is required.' })
+      };
+    }
+
     if (!leadPhone) {
       console.warn('Missing required field: lead_phone');
       return { statusCode: 400, body: JSON.stringify({ success: false, error: 'lead_phone is required' }) };
@@ -29,6 +38,7 @@ exports.handler = async (event) => {
 
     // 3. Prepare Queue Item
     const queueItem = {
+      tenantSlug, // Explicitly assign the queue item to the tenant
       lead_phone: leadPhone,
       lead_name: leadName,
       lead_id: leadId,
@@ -47,7 +57,7 @@ exports.handler = async (event) => {
     const queueRef = db.collection('callback_queue').doc();
     await queueRef.set(queueItem);
 
-    console.log(`Successfully added lead ${leadName} (${leadPhone}) to callback queue with ID: ${queueRef.id}`);
+    console.log(`Successfully scheduled callback for lead ${leadName} to tenant: ${tenantSlug} with ID: ${queueRef.id}`);
 
     return {
       statusCode: 200,
@@ -60,7 +70,7 @@ exports.handler = async (event) => {
     };
 
   } catch (error) {
-    console.error('Schedule Lead Callback Error:', error);
+    console.error(`Schedule Lead Callback Error (Tenant: ${event.body?.tenantSlug || 'Unknown'}):`, error);
     return { statusCode: 500, body: JSON.stringify({ success: false, error: 'Internal Server Error', details: error.message }) };
   }
 };

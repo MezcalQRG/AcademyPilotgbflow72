@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Table, 
   TableBody, 
@@ -17,12 +16,17 @@ import { Search, Filter, Download, MessageSquare, Phone, MoreVertical, ArrowUpDo
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LeadProfileDialog } from "@/components/leads/lead-profile-dialog";
 import { InitializeLeadDialog } from "@/components/leads/initialize-lead-dialog";
-import { useCollection, useUser, useMemoFirebase, useFirestore } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { useParams } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LeadManagement() {
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const params = useParams();
+  const tenantSlug = params?.slug as string;
+  const { toast } = useToast();
+
+  const [leads, setLeads] = useState<any[]>([]);
+  const [isLeadsLoading, setIsLeadsLoading] = useState(true);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -31,20 +35,53 @@ export default function LeadManagement() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isInitDialogOpen, setIsInitDialogOpen] = useState(false);
 
-  // Aligning path with security rules: /user_profiles/{userId}/leads
-  const leadsRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, 'user_profiles', user.uid, 'leads');
-  }, [firestore, user]);
+  // Data Fetching via the Secure Next.js Orchestrator Proxy
+  useEffect(() => {
+    async function fetchLeads() {
+      if (!tenantSlug) return;
+      setIsLeadsLoading(true);
+      try {
+        const response = await fetch('/api/orchestrator', { // Updated to use the new secure proxy route
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'GET_LEADS', // The Orchestrator action
+            payload: {
+              tenantSlug: tenantSlug, // Mandatory for tenant isolation
+              limit: 100 // Example filter
+            }
+          })
+        });
 
-  const { data: leads, isLoading: isLeadsLoading } = useCollection(leadsRef);
+        if (!response.ok) {
+           const errData = await response.json();
+           throw new Error(errData.error || 'Network response was not ok');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.leads) {
+          setLeads(data.leads);
+        } else {
+           console.error("Backend error:", data.error);
+           toast({ title: "Error fetching leads", description: data.error, variant: "destructive" });
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch leads:", error);
+        toast({ title: "Connection Error", description: error.message || "Could not reach the tactical backend.", variant: "destructive" });
+      } finally {
+        setIsLeadsLoading(false);
+      }
+    }
+
+    fetchLeads();
+  }, [tenantSlug, toast]);
 
   const filteredLeads = useMemo(() => {
-    if (!leads) return [];
     let result = [...leads].filter(lead => 
-      lead.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.clase?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (sortKey) {
@@ -71,16 +108,18 @@ export default function LeadManagement() {
     setIsProfileOpen(true);
   };
 
-  if (isUserLoading || isLeadsLoading) {
+  if (isLeadsLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="font-headline font-black uppercase italic tracking-widest text-primary text-sm">Interfacing with Tactical Backend...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
+      {/* Header and Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-primary pl-6">
         <div>
           <h1 className="font-headline text-4xl font-black uppercase italic tracking-tighter leading-none text-foreground">Lead Registry</h1>
@@ -104,7 +143,7 @@ export default function LeadManagement() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search leads by name or email..." 
+            placeholder="Search leads by name, phone, or class..." 
             className="pl-10 bg-background border-border rounded-none focus-visible:ring-primary h-12 text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -119,13 +158,13 @@ export default function LeadManagement() {
         <Table>
           <TableHeader className="bg-secondary/5">
             <TableRow className="border-b-2 border-b-border">
-              <TableHead onClick={() => toggleSort('firstName')} className="cursor-pointer font-black uppercase tracking-widest text-[10px] h-14">
+              <TableHead onClick={() => toggleSort('name')} className="cursor-pointer font-black uppercase tracking-widest text-[10px] h-14">
                 Student <ArrowUpDown className="inline ml-1 h-3 w-3" />
               </TableHead>
               <TableHead className="font-black uppercase tracking-widest text-[10px]">Contact Info</TableHead>
-              <TableHead className="font-black uppercase tracking-widest text-[10px]">Source</TableHead>
-              <TableHead className="font-black uppercase tracking-widest text-[10px]">Status & Tags</TableHead>
-              <TableHead onClick={() => toggleSort('capturedAt')} className="cursor-pointer font-black uppercase tracking-widest text-[10px]">
+              <TableHead className="font-black uppercase tracking-widest text-[10px]">Source & Class</TableHead>
+              <TableHead className="font-black uppercase tracking-widest text-[10px]">Processing Status</TableHead>
+              <TableHead onClick={() => toggleSort('createdAt')} className="cursor-pointer font-black uppercase tracking-widest text-[10px]">
                 Captured <ArrowUpDown className="inline ml-1 h-3 w-3" />
               </TableHead>
               <TableHead className="text-right font-black uppercase tracking-widest text-[10px]">Actions</TableHead>
@@ -139,34 +178,29 @@ export default function LeadManagement() {
                     onClick={() => handleLeadClick(lead)}
                     className="font-black uppercase italic text-sm hover:text-primary transition-all text-left underline underline-offset-4 decoration-primary/30 decoration-dashed hover:decoration-primary"
                   >
-                    {lead.firstName} {lead.lastName}
+                    {lead.name}
                   </button>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1 text-[11px] font-medium uppercase">
-                    <span className="text-muted-foreground">{lead.email}</span>
-                    <span className="font-bold">{lead.phoneNumber}</span>
+                    <span className="font-bold">{lead.phone}</span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest border-primary text-primary rounded-none">
-                    {lead.sourceType}
+                   <div className="flex flex-col gap-1">
+                      <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest border-primary text-primary rounded-none w-fit">
+                        {lead.source || 'Manual'}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground uppercase">{lead.clase}</span>
+                   </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={`font-black uppercase tracking-widest text-[9px] rounded-none ${lead.processed ? 'bg-green-600 text-white' : 'bg-yellow-500 text-black'}`}>
+                    {lead.processed ? 'Processed' : 'Pending Callback'}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <Badge className={`font-black uppercase tracking-widest text-[9px] rounded-none ${getStatusColor(lead.qualificationStatus)}`}>
-                      {lead.qualificationStatus}
-                    </Badge>
-                    {lead.tags?.map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="font-black text-[8px] uppercase tracking-widest border-foreground/30 text-muted-foreground rounded-none w-fit">
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
                 <TableCell className="text-muted-foreground text-[11px] font-bold uppercase tracking-tighter">
-                  {lead.capturedAt ? new Date(lead.capturedAt).toLocaleDateString() : 'N/A'}
+                  {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'N/A'}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -215,14 +249,4 @@ export default function LeadManagement() {
       />
     </div>
   );
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'New': return 'bg-blue-600 text-white';
-    case 'Qualified': return 'bg-green-600 text-white';
-    case 'Contacted': return 'bg-yellow-500 text-black';
-    case 'Converted': return 'bg-primary text-white shadow-[2px_2px_0px_rgba(0,0,0,0.2)]';
-    default: return 'bg-muted text-foreground';
-  }
 }
