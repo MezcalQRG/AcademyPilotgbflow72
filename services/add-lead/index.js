@@ -12,7 +12,8 @@ exports.handler = async (event) => {
   try {
     // 1. Parse Input
     const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-    const { tenantSlug, name, phone, clase, visit_date, note, uniform, source } = body;
+    // Extracting email as well
+    const { tenantSlug, name, phone, email, clase, visit_date, note, uniform, source } = body;
 
     // 2. Validate Tenant and Required Fields
     if (!tenantSlug) {
@@ -38,6 +39,7 @@ exports.handler = async (event) => {
       tenantSlug, // Explicitly assign the lead to the tenant
       name,
       phone,
+      email: email || null, // Optional for backward compatibility, but highly recommended
       clase: clase || 'sin especificar',
       visit_date: visit_date || null,
       note: note || '',

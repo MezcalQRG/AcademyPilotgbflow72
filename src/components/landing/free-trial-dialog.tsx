@@ -30,6 +30,7 @@ import { Loader2, PhoneOutgoing } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   phone: z.string().min(10, "Valid phone number required"),
+  email: z.string().email("Valid email is required"), // Added Email Validation
 });
 
 export function FreeTrialDialog({ children, tenantSlug }: { children: React.ReactNode, tenantSlug: string }) {
@@ -47,6 +48,7 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
     defaultValues: {
       name: "",
       phone: "",
+      email: "", // Added default value
     },
   });
 
@@ -103,24 +105,16 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
     setFullPhone(values.phone);
     
     try {
-      // Tactical Backend Integration: Sending the lead to the orchestrator
-      // We do NOT use the authenticated /api/orchestrator route here because 
-      // this is a public form. We need a specific public intake endpoint or
-      // we need to configure our orchestrator to allow unauthenticated 'ADD_LEAD' actions
-      // if they come from our own trusted frontend (e.g., via a distinct public proxy route).
-      
-      // For this implementation, we will assume we have a public intake route
-      // that safely accepts leads for a specific tenant.
-      
       const response = await fetch('/api/public-intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'ADD_LEAD',
           payload: {
-            tenantSlug: tenantSlug, // CRUCIAL: Assigning the lead to the specific academy
+            tenantSlug: tenantSlug, 
             name: values.name,
             phone: values.phone,
+            email: values.email, // Passing the email to the backend
             source: 'website_free_trial'
           }
         })
@@ -131,7 +125,7 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
       }
 
       setIsSubmitting(false);
-      setIsCalling(true); // Engages the AI Dispatch Matrix UI
+      setIsCalling(true); 
       
       toast({
         title: "PROTOCOL INITIALIZED",
@@ -182,7 +176,7 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -197,6 +191,20 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
                   )}
                 />
                 
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest">Email Address</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="ENTER EMAIL..." {...field} className="rounded-none border-2 font-bold h-12 focus-visible:ring-primary" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="phone"

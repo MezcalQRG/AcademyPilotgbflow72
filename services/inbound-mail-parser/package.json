@@ -1,0 +1,12 @@
+{
+  "name": "inbound-mail-parser-service",
+  "version": "1.0.0",
+  "description": "Triggered by S3. Parses raw emails dropped by SES and saves them to the Firestore leads collection.",
+  "main": "index.js",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "aws-sdk": "^2.1481.0",
+    "firebase-admin": "^11.10.0",
+    "mailparser": "^3.6.5"
+  }
+}

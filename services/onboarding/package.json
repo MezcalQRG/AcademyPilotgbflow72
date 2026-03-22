@@ -1,0 +1,10 @@
+{
+  "name": "onboarding-service",
+  "version": "1.0.0",
+  "description": "Handles the creation of new tenants, including Cloudflare DNS records, SES identities, and S3 bucket setup.",
+  "main": "index.js",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "aws-sdk": "^2.1481.0"
+  }
+}

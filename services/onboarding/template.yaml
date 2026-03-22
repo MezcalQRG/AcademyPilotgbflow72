@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Onboarding Service Infrastructure
+
+  Provisions the S3 Bucket for incoming tenant emails and the Onboarding Lambda function.
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 256
+    Runtime: nodejs18.x
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: 'prod'
+    Description: Environment name (e.g., dev, staging, prod)
+
+Resources:
+  # 1. The S3 Bucket for Incoming Emails
+  TenantIncomingEmailsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "graciebarra-tenant-emails-${AWS::AccountId}-${AWS::Region}-${EnvironmentName}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # 2. S3 Bucket Policy granting SES permission to write incoming emails
+  TenantIncomingEmailsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TenantIncomingEmailsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: "AllowSESPuts"
+            Effect: "Allow"
+            Principal:
+              Service: "ses.amazonaws.com"
+            Action: "s3:PutObject"
+            Resource: !Sub "${TenantIncomingEmailsBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                "aws:Referer": !Sub "${AWS::AccountId}"
+
+  # 3. The Onboarding Lambda
+  OnboardingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: ./
+      Description: Handles new tenant onboarding (Cloudflare DNS, SES verification, Receipt Rules)
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:VerifyEmailIdentity
+                - ses:SetIdentityMailFromDomain
+                - ses:CreateReceiptRule
+                - ses:DescribeReceiptRuleSet
+                - ses:CreateReceiptRuleSet
+              Resource: "*"
+      Environment:
+        Variables:
+          INCOMING_EMAILS_BUCKET: !Ref TenantIncomingEmailsBucket
+          # Pulling Cloudflare secrets securely from SSM Parameter Store
+          CLOUDFLARE_API_TOKEN: '{{resolve:ssm:/app/cloudflare-api-token:1}}'
+          CLOUDFLARE_ZONE_ID: '{{resolve:ssm:/app/cloudflare-zone-id:1}}'
+          AWS_REGION: !Ref "AWS::Region"
+
+Outputs:
+  IncomingEmailsBucketName:
+    Description: "Name of the S3 Bucket for incoming tenant emails"
+    Value: !Ref TenantIncomingEmailsBucket
+  OnboardingFunctionName:
+    Description: "The name of the Onboarding Lambda function"
+    Value: !Ref OnboardingFunction
