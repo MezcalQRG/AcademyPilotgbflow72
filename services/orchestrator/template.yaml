@@ -47,6 +47,17 @@ Resources:
             FunctionName: !Ref MarkProcessedFunctionName
         - LambdaInvokePolicy:
             FunctionName: !Ref ScheduleCallbackFunctionName
+        # Grant permission to read and decrypt the Auth Token from SSM
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/auth-token'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm'
       Environment:
         Variables:
           AUTH_TOKEN: '{{resolve:ssm:/app/auth-token:1}}'

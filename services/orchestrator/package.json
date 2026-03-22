@@ -1,0 +1,11 @@
+{
+  "name": "universal-tactical-orchestrator",
+  "version": "1.0.0",
+  "description": "Central API Gateway and router for backend services. Now handles Firebase JWT verification.",
+  "main": "index.js",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "aws-sdk": "^2.1481.0",
+    "firebase-admin": "^11.10.0"
+  }
+}

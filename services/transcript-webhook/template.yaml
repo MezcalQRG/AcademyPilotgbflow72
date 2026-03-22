@@ -14,7 +14,7 @@ Globals:
 Parameters:
   TriggerOutboundCallFunctionName:
     Type: String
-    Description: The name of the Lambda function responsible for initiating outbound calls (e.g., triggerOutboundCallHandler).
+    Description: The name of the Lambda function responsible for initiating outbound calls.
 
 Resources:
   TranscriptWebhookFunction:
@@ -27,10 +27,21 @@ Resources:
         - LambdaInvokePolicy:
             FunctionName: !Ref TriggerOutboundCallFunctionName
         - VPCAccessPolicy: {}
+        # Grant permission to read and decrypt the Firebase Service Account from SSM
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/firebase-service-account'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm'
       Environment:
         Variables:
           FIREBASE_SERVICE_ACCOUNT: '{{resolve:ssm:/app/firebase-service-account:1}}'
-          TRIGGER_OUTBOUND: 'true' # Set to 'false' to disable outbound calls
+          TRIGGER_OUTBOUND: 'true' 
           OUTBOUND_LAMBDA_NAME: !Ref TriggerOutboundCallFunctionName
 
 Outputs:

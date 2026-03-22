@@ -20,6 +20,20 @@ Resources:
       CodeUri: ./
       Policies:
         - AWSLambdaBasicExecutionRole
+        # Grant permission to read and decrypt the Firebase Service Account from SSM
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/firebase-service-account'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm'
+      Environment:
+        Variables:
+          FIREBASE_SERVICE_ACCOUNT: '{{resolve:ssm:/app/firebase-service-account:1}}'
 
 Outputs:
   GetLeadsFunctionName:

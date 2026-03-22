@@ -19,6 +19,19 @@ Resources:
       CodeUri: ./
       Policies:
         - AWSLambdaBasicExecutionRole
+        # Grant permission to read and decrypt parameters from SSM
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/firebase-service-account'
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/elevenlabs-api-key'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm'
       Environment:
         Variables:
           ELEVENLABS_API_KEY: '{{resolve:ssm:/app/elevenlabs-api-key:1}}'
@@ -26,9 +39,8 @@ Resources:
           CALLBACK_PHONE_ID: '+16266993169'
           FIREBASE_SERVICE_ACCOUNT: '{{resolve:ssm:/app/firebase-service-account:1}}'
           FIREBASE_PROJECT_ID: 'admin-audit-3f2cd'
-          TZ: 'America/New_York' # Replace with actual timezone if different
+          TZ: 'America/New_York' 
 
-  # EventBridge Rule to trigger the lambda periodically
   ProcessCallbackQueueSchedule:
     Type: AWS::Events::Rule
     Properties:
@@ -39,7 +51,6 @@ Resources:
         - Arn: !GetAtt ProcessCallbackQueueFunction.Arn
           Id: "ProcessCallbackQueueTarget"
 
-  # Permission for EventBridge to invoke the lambda
   PermissionForEventsToInvokeLambda:
     Type: AWS::Lambda::Permission
     Properties:

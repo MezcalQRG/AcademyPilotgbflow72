@@ -3,13 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   inbound-mail-parser-service
 
-  A microservice that parses raw email files from S3 (dropped by SES) and saves the 
-  conversations into the correct tenant's Firestore database for AI processing.
+  A microservice that parses raw email files from S3 and saves the conversations into Firestore.
 
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 512 # Parsing large emails/attachments can be memory intensive
+    MemorySize: 512 
     Runtime: nodejs18.x
 
 Parameters:
@@ -26,15 +25,23 @@ Resources:
       CodeUri: ./
       Policies:
         - AWSLambdaBasicExecutionRole
-        # Give the Lambda permission to read the emails from the S3 bucket
         - S3ReadPolicy:
             BucketName: !Ref IncomingEmailsBucketName
+        # Grant permission to read and decrypt the Firebase Service Account from SSM
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/firebase-service-account'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm'
       Environment:
         Variables:
           FIREBASE_SERVICE_ACCOUNT: '{{resolve:ssm:/app/firebase-service-account:1}}'
-          # We need to know our root domain to extract the tenant slug
           ROOT_DOMAIN: 'graciebarra.ai'
-      # Trigger this Lambda whenever a new object is created in the bucket
       Events:
         NewEmailEvent:
           Type: S3

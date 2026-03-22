@@ -20,12 +20,25 @@ Resources:
       CodeUri: ./
       Policies:
         - AWSLambdaBasicExecutionRole
+        # Grant permission to read and decrypt parameters from SSM
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/elevenlabs-api-key'
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/firebase-service-account'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm'
       Environment:
         Variables:
           ELEVENLABS_API_KEY: '{{resolve:ssm:/app/elevenlabs-api-key:1}}'
+          FIREBASE_SERVICE_ACCOUNT: '{{resolve:ssm:/app/firebase-service-account:1}}'
           SALLY_AGENT_ID: 'agent_5101kh4k6hxvezmsa2tbwp0y6mvs'
           ELEVENLABS_PHONE_ID: '+16266993169'
-          ACADEMY_PHONE: '+13059293241'
 
 Outputs:
   TriggerOutboundCallFunctionName:
