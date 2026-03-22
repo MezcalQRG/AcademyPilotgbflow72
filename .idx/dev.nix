@@ -1,4 +1,4 @@
-# To learn more about how to use Nix to configure your environment
+# To l earn more about how to use Nix to configure your environment
 # see:https://firebase.google.com/docs/studio/customize-workspace
 {pkgs}: {
   # Which nixpkgs channel to use.
@@ -19,7 +19,7 @@
     services = ["auth" "firestore"];
   };
   idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
+    # Search for the extensions y ou want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       # "vscodevim.vim"
     ];
