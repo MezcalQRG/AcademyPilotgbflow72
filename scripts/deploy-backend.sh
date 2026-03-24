@@ -3,6 +3,7 @@ set -e
 
 # Deploy script for AWS Serverless Application Model (SAM) Microservices
 # This script handles the order of operations for deploying dependent services
+# Version 2.0: Fixed CloudFormation dependency issues
 
 echo "============================================="
 echo "🚀 INITIATING TACTICAL BACKEND DEPLOYMENT"
