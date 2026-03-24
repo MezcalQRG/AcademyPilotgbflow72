@@ -1,3 +1,4 @@
+
 'use server';
 
 import { generateCampaignStructure } from "@/ai/flows/generate-campaign-structure";
@@ -18,7 +19,7 @@ import { getFirebaseAdmin } from "@/lib/firebase-admin";
 import axios from 'axios';
 
 const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || 'https://2cgrii72ke.execute-api.us-east-1.amazonaws.com/orchestrate';
-const ORCHESTRATOR_TOKEN = process.env.ORCHESTRATOR_TOKEN || '123456789';
+const ORCHESTRATOR_AUTH_TOKEN = process.env.ORCHESTRATOR_AUTH_TOKEN || '123456789';
 
 /**
  * High-authority directive to initiate a tactical magic link login via AWS SES.
@@ -64,7 +65,7 @@ export async function dispatchOrchestratorAction(action: string, payload: any) {
       payload
     }, {
       headers: {
-        'Authorization': `Bearer ${ORCHESTRATOR_TOKEN}`,
+        'Authorization': `Bearer ${ORCHESTRATOR_AUTH_TOKEN}`,
         'Content-Type': 'application/json'
       }
     });

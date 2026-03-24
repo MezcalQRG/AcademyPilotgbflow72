@@ -42,8 +42,7 @@ async function resolveAuthToken() {
  * Universal Tactical Orchestrator (Multi-Tenant & RBAC)
  * 
  * Acts as a secure API Gateway and router for backend services.
- * Now handles the heavy lifting of Firebase JWT verification and Role-Based
- * Access Control (RBAC) because the frontend runs on Cloudflare Edge.
+ * Distinguishes between Service-Level trust and User-Level authorization.
  */
 exports.handler = async (event) => {
   console.log('--- MISSION DIRECTIVE RECEIVED (AWS ORCHESTRATOR) ---');
@@ -67,58 +66,58 @@ exports.handler = async (event) => {
         return { statusCode: 400, body: JSON.stringify({ error: 'Mission directive "action" is missing.' }) };
     }
 
-    // 3. User Identity Verification (Firebase JWT)
-    if (!userJwt) {
-        console.error('Security Alert: Request missing user JWT.');
-        return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized: Missing user token' }) };
-    }
+    // 3. Define Action Classes
+    const OWNER_ACTIONS = ['GET_LEADS', 'MARK_PROCESSED', 'SCHEDULE_CALLBACK', 'UPDATE_LANDING_PAGE'];
+    const SERVICE_ACTIONS = ['SEND_EMAIL', 'ADD_LEAD'];
 
-    // Initialize Firebase Admin
+    // Initialize Identity Matrix
     const firestoreDb = await getFirestore();
-    let decodedToken;
+    let decodedToken = null;
+    let uid = null;
+    let userProfile = null;
+    let authorizedRole = null;
+    let authorizedTenant = null;
 
-    try {
-      decodedToken = await admin.auth().verifyIdToken(userJwt);
-    } catch (authError) {
-      console.error('Security Alert: Invalid Firebase ID token.', authError);
-      return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized: Invalid user token' }) };
+    // 4. User Identity Verification (If JWT is provided or required)
+    if (userJwt) {
+      try {
+        decodedToken = await admin.auth().verifyIdToken(userJwt);
+        uid = decodedToken.uid;
+        const userProfileDoc = await firestoreDb.collection('user_profiles').doc(uid).get();
+
+        if (userProfileDoc.exists) {
+          userProfile = userProfileDoc.data();
+          authorizedRole = userProfile?.role;
+          authorizedTenant = userProfile?.tenantSlug;
+        }
+      } catch (authError) {
+        console.error('Security Alert: Invalid Firebase ID token.', authError);
+        return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized: Invalid user token' }) };
+      }
     }
 
-    // 4. Enforce Role-Based Access Control (RBAC) & Tenant Isolation
-    const uid = decodedToken.uid;
-    const userProfileDoc = await firestoreDb.collection('user_profiles').doc(uid).get();
+    // 5. Enforce Access Control
+    if (OWNER_ACTIONS.includes(action)) {
+        if (!uid) {
+            console.error(`Security Alert: Action '${action}' requires user JWT.`);
+            return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized: Missing user token' }) };
+        }
 
-    if (!userProfileDoc.exists) {
-      console.error(`Security Alert: User profile not found for UID: ${uid}`);
-      return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden: User profile missing' }) };
-    }
-
-    const userProfile = userProfileDoc.data();
-    const authorizedRole = userProfile?.role;
-    const authorizedTenant = userProfile?.tenantSlug;
-
-    // --- Authorization Logic based on Action ---
-    if (payload && payload.tenantSlug) {
-        // Restricted actions for Academy Owners
-        const OWNER_ACTIONS = ['GET_LEADS', 'MARK_PROCESSED', 'SCHEDULE_CALLBACK', 'SEND_EMAIL', 'UPDATE_LANDING_PAGE'];
-        
-        if (OWNER_ACTIONS.includes(action)) {
-          if (authorizedRole !== 'academy_owner') {
+        if (authorizedRole !== 'academy_owner') {
              console.warn(`Security Alert: User ${uid} attempted owner action '${action}' without owner role.`);
              return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden: Insufficient permissions' }) };
-          }
+        }
 
-          // Check IDOR: Does the tenant they are asking for match the tenant they own?
-          if (payload.tenantSlug !== authorizedTenant) {
+        // Check IDOR: Does the tenant they are asking for match the tenant they own?
+        if (payload && payload.tenantSlug && payload.tenantSlug !== authorizedTenant) {
              console.warn(`Security Alert (IDOR): User ${uid} (Tenant: ${authorizedTenant}) attempted to access data for Tenant: ${payload.tenantSlug}`);
              return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden: Cross-tenant access denied' }) };
-          }
         }
     }
 
-    console.log(`Authorization successful for UID: ${uid} (Role: ${authorizedRole}, Tenant: ${authorizedTenant}). Proxying action '${action}'.`);
+    console.log(`Authorization successful for action '${action}'. Proxying to target sector.`);
 
-    // 5. Dispatch to Specialized Sector
+    // 6. Dispatch to Specialized Sector
     let targetFunction;
     switch (action) {
       case 'SEND_EMAIL':
@@ -146,27 +145,25 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: `Server Configuration Error for action: ${action}` }) };
     }
 
-    console.log(`Invoking Tactical Handler: ${targetFunction}`);
-
     const securePayload = {
         ...payload,
         _trustedContext: {
             uid: uid,
             role: authorizedRole,
-            tenantSlug: authorizedTenant
+            tenantSlug: authorizedTenant || payload?.tenantSlug // Fallback for public intake
         }
     };
 
-    // 6. Invoke Specialized Handler
+    // 7. Invoke Specialized Handler
     const result = await lambda.invoke({
       FunctionName: targetFunction,
       InvocationType: 'RequestResponse',
-      Payload: JSON.stringify(securePayload) 
+      Payload: JSON.stringify({ body: securePayload }) // Wrap in body for standard lambda handling
     }).promise();
 
     const responsePayload = JSON.parse(result.Payload);
     
-    // 7. Relay Response
+    // 8. Relay Response
     return {
       statusCode: responsePayload.statusCode || 200,
       body: responsePayload.body || JSON.stringify(responsePayload)
