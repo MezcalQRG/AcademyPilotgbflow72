@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'services/**' # Only trigger if files inside /services change
+      - 'scripts/deploy-backend.sh' # Also trigger on deploy script changes
   workflow_dispatch: # Allows you to run this manually from the GitHub UI
 
 jobs:
