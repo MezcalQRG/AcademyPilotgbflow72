@@ -25,6 +25,28 @@ function normalizeServiceAccount(input) {
   return normalized;
 }
 
+function parseServiceAccountPayload(rawValue) {
+  // Support double-encoded JSON secrets.
+  let parsed = rawValue;
+  if (typeof parsed === 'string') {
+    parsed = JSON.parse(parsed);
+  }
+
+  if (typeof parsed === 'string') {
+    parsed = JSON.parse(parsed);
+  }
+
+  // Support wrapped secret structures.
+  if (parsed && typeof parsed === 'object') {
+    const wrapped = parsed.serviceAccount || parsed.firebaseServiceAccount || parsed.credentials || parsed.value;
+    if (wrapped) {
+      parsed = typeof wrapped === 'string' ? JSON.parse(wrapped) : wrapped;
+    }
+  }
+
+  return normalizeServiceAccount(parsed);
+}
+
 /**
  * Initializes the Firebase Admin SDK and returns a Firestore instance.
  *
@@ -65,13 +87,15 @@ async function getFirestore() {
 
   let serviceAccount;
   try {
-    serviceAccount = JSON.parse(rawJson);
+    serviceAccount = parseServiceAccountPayload(rawJson);
   } catch (e) {
     console.error('FIREBASE_SERVICE_ACCOUNT must be valid JSON:', e.message);
     throw e;
   }
 
-  serviceAccount = normalizeServiceAccount(serviceAccount);
+  if (!serviceAccount?.private_key || !serviceAccount?.client_email || !serviceAccount?.project_id) {
+    throw new Error('Invalid Firebase service account payload: missing one or more of private_key, client_email, project_id.');
+  }
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
