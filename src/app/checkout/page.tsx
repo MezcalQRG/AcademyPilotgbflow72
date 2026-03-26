@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PaymentMethodForm } from "@/components/leads/payment-method-form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, Zap, CreditCard, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Loader2, ShieldCheck, Zap, CreditCard, ArrowLeft, CheckCircle2, X, ChevronDown } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { getAcademyPhotos } from "@/app/actions";
 import { BackgroundPhotoRotation } from "@/components/landing/background-photo-rotation";
@@ -28,13 +28,18 @@ function CheckoutContent() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [coupon, setCoupon] = useState("");
   const [isCouponApplied, setIsCouponApplied] = useState(false);
+  const [isAgreementOpen, setIsAgreementOpen] = useState(false);
+  const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [agreementScrollRef, setAgreementScrollRef] = useState<HTMLDivElement | null>(null);
 
   const planTitle = searchParams.get("plan") || "Strategic Plan";
   const planDetails = searchParams.get("details") || "Mission initialization details pending.";
   const itemType = searchParams.get("itemType") || "membership";
   const assetId = searchParams.get("assetId");
-  const basePrice = searchParams.get("price") || "900";
+  const basePrice = searchParams.get("price") || "150";
   const displayPrice = isCouponApplied ? "0" : basePrice;
+  const [academySlug, setAcademySlug] = useState(searchParams.get("slug") || "");
 
   useEffect(() => {
     async function loadPhotos() {
@@ -52,8 +57,11 @@ function CheckoutContent() {
             setCountdown((prev) => prev - 1);
         }, 1000);
     } else if (isSuccess && countdown === 0) {
-        // Redirection protocol: Forwarding unit to the Student Hub
-        router.push("/student/dashboard");
+        // Redirection protocol: Forwarding unit to the Academy Dashboard
+        const dashboardUrl = academySlug 
+          ? `/${academySlug}/dashboard/landing-page`
+          : "/student/dashboard";
+        router.push(dashboardUrl);
     }
 
     return () => clearInterval(timer);
@@ -86,7 +94,25 @@ function CheckoutContent() {
     }
   };
 
+  const handleAgreementScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const isAtBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 50;
+    if (isAtBottom) {
+      setHasScrolledToBottom(true);
+    }
+  };
+
   const handlePaymentSubmit = async (data: any) => {
+    // Require agreement acceptance for academy owner accounts
+    if (itemType === 'membership' && !isAgreementAccepted) {
+      setIsAgreementOpen(true);
+      toast({
+        variant: "destructive",
+        title: "AGREEMENT REQUIRED",
+        description: "You must read and accept the terms agreement to proceed.",
+      });
+      return;
+    }
     setIsProcessing(true);
     
     // Simulated tactical handshake
@@ -237,6 +263,21 @@ function CheckoutContent() {
         </div>
       </div>
 
+      {/* Agreement Modal */}
+      <AgreementModal
+        isOpen={isAgreementOpen}
+        onClose={() => {
+          setIsAgreementOpen(false);
+          setHasScrolledToBottom(false);
+        }}
+        onAccept={() => {
+          setIsAgreementAccepted(true);
+          setIsAgreementOpen(false);
+        }}
+        onScroll={handleAgreementScroll}
+        hasScrolledToBottom={hasScrolledToBottom}
+      />
+
       {/* Right Sector: Financial Matrix Entry */}
       <div className="w-full md:w-1/2 p-6 md:p-12 bg-card flex flex-col justify-center relative overflow-hidden">
         <Zap className="absolute top-0 right-0 h-48 w-48 md:h-64 md:w-64 text-primary opacity-5 rotate-12 -translate-y-16 translate-x-16" />
@@ -284,11 +325,77 @@ function CheckoutContent() {
                 </Badge>
               </div>
               
-              <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl">
-                <PaymentMethodForm 
-                  onSubmit={handlePaymentSubmit} 
-                  onCancel={() => router.push(itemType === 'uniform' ? '/store' : '/')} 
-                />
+              <div className="space-y-6">
+                {/* Academy Slug Input */}
+                {itemType === 'membership' && (
+                  <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl">
+                    <div className="space-y-3">
+                      <Label htmlFor="slug" className="text-sm font-black uppercase tracking-widest text-foreground flex items-center gap-2">
+                        <span>Academy Slug / Domain</span>
+                        <span className="text-xs text-primary">*</span>
+                      </Label>
+                      <Input
+                        id="slug"
+                        placeholder="e.g., westcovina, downtown, etc."
+                        value={academySlug}
+                        onChange={(e) => setAcademySlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                        required
+                        className="rounded-none border-2 border-border h-12 font-black uppercase italic text-sm bg-black/5 focus-visible:ring-primary"
+                      />
+                      <p className="text-[8px] font-bold uppercase tracking-tighter text-muted-foreground italic">
+                        This will be your dashboard URL: /{academySlug || 'your-slug'}/dashboard
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Agreement Acceptance */}
+                {itemType === 'membership' && (
+                  <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="agreement"
+                        checked={isAgreementAccepted}
+                        onChange={(e) => {
+                          if (!e.target.checked) {
+                            setIsAgreementAccepted(false);
+                          } else if (hasScrolledToBottom) {
+                            setIsAgreementAccepted(true);
+                          } else {
+                            setIsAgreementOpen(true);
+                            toast({
+                              title: "PLEASE READ AGREEMENT",
+                              description: "Scroll to the bottom to fully read the agreement.",
+                            });
+                          }
+                        }}
+                        disabled={!hasScrolledToBottom}
+                        className="mt-1 w-5 h-5 cursor-pointer disabled:opacity-50"
+                      />
+                      <Label htmlFor="agreement" className="text-sm font-bold uppercase tracking-widest text-foreground cursor-pointer flex-1">
+                        I have read and accept the Terms & Conditions
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAgreementOpen(true);
+                            setHasScrolledToBottom(false);
+                          }}
+                          className="text-primary hover:underline ml-2 font-black"
+                        >
+                          (Read Agreement)
+                        </button>
+                      </Label>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl">
+                  <PaymentMethodForm 
+                    onSubmit={handlePaymentSubmit} 
+                    onCancel={() => router.push(itemType === 'uniform' ? '/store' : '/')} 
+                  />
+                </div>
               </div>
 
               <div className="text-center">
@@ -313,5 +420,160 @@ export default function CheckoutPage() {
     }>
       <CheckoutContent />
     </Suspense>
+  );
+}
+
+// Agreement Modal Component
+function AgreementModal({ 
+  isOpen, 
+  onClose, 
+  onAccept, 
+  onScroll,
+  hasScrolledToBottom 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onAccept: () => void; 
+  onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
+  hasScrolledToBottom: boolean;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-background border-4 border-primary max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="bg-primary text-white p-6 md:p-8 border-b-4 border-primary flex items-center justify-between">
+          <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter">Terms & Conditions</h2>
+          <button
+            onClick={onClose}
+            className="text-white hover:bg-primary/80 p-2 transition-colors"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div
+          onScroll={onScroll}
+          className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 border-b-4 border-border"
+        >
+          <div className="space-y-6 text-sm leading-relaxed font-medium text-foreground/90">
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">1. ACADEMY OWNER AGREEMENT</h3>
+              <p>
+                By proceeding with this payment of $150 per month, you acknowledge that you are the authorized representative of your academy and take full responsibility for account management, billing, and compliance with all platform policies.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">2. PAYMENT TERMS</h3>
+              <p>
+                • Monthly subscription: $150 USD (auto-renews monthly)
+              </p>
+              <p>
+                • Payment is charged on the same day each month
+              </p>
+              <p>
+                • Cancellation can be done anytime from dashboard settings
+              </p>
+              <p>
+                • No refunds for partial months
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">3. DATA & PRIVACY</h3>
+              <p>
+                Your academy data is stored securely in our Firebase infrastructure. We comply with GDPR, CCPA, and international data protection standards. Student personal information is encrypted and never shared with third parties without explicit consent.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">4. SERVICE FEATURES</h3>
+              <p>
+                Your subscription includes:
+              </p>
+              <p>
+                • Multi-tenant dashboard with unlimited users per academy
+              </p>
+              <p>
+                • Lead management and tracking system
+              </p>
+              <p>
+                • AWS SES email integration for student communications
+              </p>
+              <p>
+                • Student class scheduling and enrollment management
+              </p>
+              <p>
+                • Firestore database for academy data
+              </p>
+              <p>
+                • JWT-based authentication and security
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">5. TERMINATION</h3>
+              <p>
+                We reserve the right to terminate accounts that violate our terms. Upon termination, your data will be deleted after 30 days unless you request an export for backup purposes.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">6. LIABILITY</h3>
+              <p>
+                We are not liable for data loss, service interruptions, or third-party integrations. Your use of the platform is at your own risk. We maintain industry-standard security, but cannot guarantee 100% uptime.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-black uppercase text-lg mb-3">7. UPDATES TO TERMS</h3>
+              <p>
+                We may update these terms at any time. Material changes will be notified via email. Continued use of the platform constitutes acceptance of new terms.
+              </p>
+            </section>
+
+            <div className="pt-4 border-t-2 border-border">
+              <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground italic">
+                ⬇ SCROLL TO BOTTOM AND ACCEPT TO CONTINUE
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer with Acceptance */}
+        <div className="bg-background border-t-4 border-border p-6 md:p-8 space-y-4">
+          {!hasScrolledToBottom ? (
+            <div className="flex items-center gap-2 text-primary font-black uppercase text-sm animate-pulse">
+              <ChevronDown className="h-5 w-5 animate-bounce" />
+              Scroll down to accept
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-green-500 font-black uppercase text-sm">
+              <CheckCircle2 className="h-5 w-5" />
+              Agreement ready to accept
+            </div>
+          )}
+          <div className="flex gap-3 flex-col-reverse sm:flex-row">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="rounded-none border-2 font-black uppercase italic h-12"
+            >
+              Decline
+            </Button>
+            <Button
+              onClick={onAccept}
+              disabled={!hasScrolledToBottom}
+              className="rounded-none bg-green-600 hover:bg-green-700 text-white font-black uppercase italic h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Accept & Continue
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

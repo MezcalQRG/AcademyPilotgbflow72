@@ -10,12 +10,3 @@
 - Template Switching: Provide an option for users to switch to a different landing page template if they are not satisfied with the initial design.
 - Page Visibility Toggle: A feature to make the page public, or hide the page.
 
-## Style Guidelines:
-
-- Primary color: Deep blue (#3F51B5) to convey trust and professionalism.
-- Background color: Light gray (#F0F2F5) for a clean and modern look.
-- Accent color: Teal (#009688) for interactive elements and call-to-action buttons.
-- Body font: 'Inter', a grotesque-style sans-serif with a modern look, suitable for body text.
-- Headline font: 'Space Grotesk', a proportional sans-serif with a computerized, techy, scientific feel; use for headlines and short amounts of body text
-- Use a set of consistent, professional icons to represent different business features and benefits.
-- Implement a clean and responsive layout that adapts to different screen sizes, ensuring a seamless user experience on all devices.
