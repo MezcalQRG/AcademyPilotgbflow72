@@ -54,15 +54,32 @@ jobs:
 
       - name: Trigger Amplify deployment
         run: |
+          APP_ID="${AMPLIFY_APP_ID:-d9kxzdvlocymn}"
           BRANCH_NAME="${AMPLIFY_BRANCH:-main}"
           REGION="${AWS_REGION:-us-east-2}"
-          aws amplify start-job \
-            --app-id "$AMPLIFY_APP_ID" \
+          set +e
+          OUTPUT=$(aws amplify start-job \
+            --app-id "$APP_ID" \
             --branch-name "$BRANCH_NAME" \
             --job-type RELEASE \
-            --region "$REGION"
+            --region "$REGION" 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "$OUTPUT"
+
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            exit 0
+          fi
+
+          if echo "$OUTPUT" | grep -qi "LimitExceededException"; then
+            echo "Amplify branch already has a pending/running job. Treating as success."
+            exit 0
+          fi
+
+          exit "$EXIT_CODE"
         env:
-          AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID || 'd9kxzdvlocymn' }}
+          AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
           AMPLIFY_BRANCH: ${{ secrets.AMPLIFY_BRANCH }}
 
 
