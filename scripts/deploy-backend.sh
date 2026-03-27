@@ -18,7 +18,7 @@ fi
 echo "Deploying to region: $AWS_REGION"
 
 # 1. Deploy the Onboarding Service (Creates the S3 Bucket first, without Lambda notification initially)
-echo "\n--- [1/7] Deploying Onboarding Service (S3 Infrastructure) ---"
+echo "\n--- [1/8] Deploying Onboarding Service (S3 Infrastructure) ---"
 cd services/onboarding
 npm install
 sam build
@@ -50,8 +50,8 @@ sam deploy --region $AWS_REGION --no-confirm-changeset --no-fail-on-empty-change
 cd ../..
 
 # 3. Deploy Standalone Services
-for service in add-lead get-leads mark-processed schedule-lead-callback; do
-  echo "\n--- [3-6/7] Deploying Microservice: $service ---"
+for service in add-lead get-leads mark-processed schedule-lead-callback ses-template-handler; do
+  echo "\n--- [3-7/8] Deploying Microservice: $service ---"
   cd services/$service
   npm install
   sam build
@@ -60,12 +60,13 @@ for service in add-lead get-leads mark-processed schedule-lead-callback; do
 done
 
 # 4. Deploy Orchestrator (Requires all other Lambda ARNs)
-echo "\n--- [7/7] Deploying Universal Tactical Orchestrator ---"
+echo "\n--- [8/8] Deploying Universal Tactical Orchestrator ---"
 # We need to fetch the ARNs of the deployed functions to pass as parameters to the Orchestrator
 ADD_LEAD_ARN=$(aws cloudformation describe-stacks --region $AWS_REGION --stack-name gracie-add-lead --query "Stacks[0].Outputs[?OutputKey=='AddLeadFunctionName'].OutputValue" --output text)
 GET_LEADS_ARN=$(aws cloudformation describe-stacks --region $AWS_REGION --stack-name gracie-get-leads --query "Stacks[0].Outputs[?OutputKey=='GetLeadsFunctionName'].OutputValue" --output text)
 MARK_PROCESSED_ARN=$(aws cloudformation describe-stacks --region $AWS_REGION --stack-name gracie-mark-processed --query "Stacks[0].Outputs[?OutputKey=='MarkProcessedFunctionName'].OutputValue" --output text)
 SCHEDULE_CALLBACK_ARN=$(aws cloudformation describe-stacks --region $AWS_REGION --stack-name gracie-schedule-lead-callback --query "Stacks[0].Outputs[?OutputKey=='ScheduleLeadCallbackFunctionName'].OutputValue" --output text)
+SES_HANDLER_NAME=$(aws cloudformation describe-stacks --region $AWS_REGION --stack-name gracie-ses-template-handler --query "Stacks[0].Outputs[?OutputKey=='SesTemplateHandlerFunctionName'].OutputValue" --output text)
 
 cd services/orchestrator
 npm install
@@ -76,7 +77,7 @@ sam deploy --region $AWS_REGION --no-confirm-changeset --no-fail-on-empty-change
   GetLeadsFunctionName=$GET_LEADS_ARN \
   MarkProcessedFunctionName=$MARK_PROCESSED_ARN \
   ScheduleCallbackFunctionName=$SCHEDULE_CALLBACK_ARN \
-  SesHandlerFunctionName="sesTemplateHandler" # Assuming this legacy one exists or will be updated
+  SesHandlerFunctionName=$SES_HANDLER_NAME
 
 echo "============================================="
 echo "✅ TACTICAL BACKEND DEPLOYMENT COMPLETE"

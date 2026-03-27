@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SES Template Handler
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: nodejs18.x
+
+Resources:
+  SesTemplateHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: sesTemplateHandler
+      CodeUri: ./
+      Handler: handler.handler
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ses:SendTemplatedEmail
+              - ses:GetTemplate
+            Resource: '*'
+      Environment:
+        Variables:
+          SES_FROM_EMAIL: no-reply@graciebarra.ai
+
+Outputs:
+  SesTemplateHandlerFunctionName:
+    Description: Name of the SES Template Handler Lambda function
+    Value: !Ref SesTemplateHandlerFunction
