@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRequestId, logger, serializeError } from '@/lib/logger';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 
 type OutboundRequest = {
   tenantSlug: string;
@@ -103,6 +104,38 @@ export async function POST(req: Request) {
       tenantSlug,
       conversationId: data?.conversation_id,
     });
+
+    const conversationId = data?.conversation_id as string | undefined;
+    if (conversationId) {
+      try {
+        const admin = getFirebaseAdmin();
+        await admin
+          .firestore()
+          .collection('elevenlabs_call_sessions')
+          .doc(conversationId)
+          .set(
+            {
+              conversationId,
+              tenantSlug,
+              leadName: name,
+              leadEmail: email,
+              leadPhone: phone,
+              status: 'dialing',
+              requestId,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+      } catch (sessionError) {
+        logger.warn('Failed to persist outbound call session state', {
+          requestId,
+          scope: 'api.elevenlabs-outbound',
+          conversationId,
+          error: serializeError(sessionError),
+        });
+      }
+    }
 
     return NextResponse.json({ success: true, data, requestId }, { status: 200 });
   } catch (error: any) {

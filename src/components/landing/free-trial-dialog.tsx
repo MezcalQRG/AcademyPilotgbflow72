@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,16 +43,31 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
   const [isCalling, setIsCalling] = useState(false);
   const [isAgentOnLine, setIsAgentOnLine] = useState(false);
   const [hasBrowserConnected, setHasBrowserConnected] = useState(false);
+  const [twilioConversationId, setTwilioConversationId] = useState<string | null>(null);
+  const [twilioStatus, setTwilioStatus] = useState<'dialing' | 'connected' | 'ended' | 'failed'>('dialing');
   const [countdown, setCountdown] = useState(60);
   const [typedPhone, setTypedPhone] = useState("");
   const [fullPhone, setFullPhone] = useState("");
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
   const { toast } = useToast();
+  const redirectGuardRef = useRef(false);
+  const browserConnectedRef = useRef(false);
+
+  const redirectToCheckout = () => {
+    if (redirectGuardRef.current) return;
+    redirectGuardRef.current = true;
+
+    const plan = "Plan Anual";
+    const price = "1800";
+    const details = "Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi.";
+    router.push(`/${tenantSlug}/checkout?plan=${encodeURIComponent(plan)}&price=${price}&details=${encodeURIComponent(details)}`);
+  };
 
   const conversation = useConversation({
     onConnect: () => {
       setHasBrowserConnected(true);
+      browserConnectedRef.current = true;
       setIsAgentOnLine(true);
       toast({
         title: 'AGENT ON THE LINE',
@@ -59,11 +75,8 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
       });
     },
     onDisconnect: () => {
-      if (hasBrowserConnected) {
-        const plan = "Plan Anual";
-        const price = "1800";
-        const details = "Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi.";
-        router.push(`/${tenantSlug}/checkout?plan=${encodeURIComponent(plan)}&price=${price}&details=${encodeURIComponent(details)}`);
+      if (browserConnectedRef.current) {
+        redirectToCheckout();
       }
     },
     onError: () => {
@@ -76,6 +89,32 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
   });
 
   const browserAgentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || '';
+
+  useEffect(() => {
+    if (!isCalling || !twilioConversationId) return;
+
+    const poller = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/elevenlabs-call-status?conversationId=${encodeURIComponent(twilioConversationId)}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        const status = (data?.status || 'dialing') as 'dialing' | 'connected' | 'ended' | 'failed';
+        setTwilioStatus(status);
+
+        if (status === 'connected') {
+          setIsAgentOnLine(true);
+        }
+
+        if (status === 'ended' || status === 'failed') {
+          redirectToCheckout();
+        }
+      } catch {
+        // Polling failures should not break the UI.
+      }
+    }, 1500);
+
+    return () => clearInterval(poller);
+  }, [isCalling, twilioConversationId]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,14 +137,7 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
           if (prev <= 1) {
             setIsCalling(false);
             setIsOpen(false);
-            
-            // REDIRECTION PROTOCOL: Transitioning to Annual Strategic Plan
-            const plan = "Plan Anual";
-            const price = "1800";
-            const details = "Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi.";
-            
-            // Redirect to the tenant checkout route.
-            router.push(`/${tenantSlug}/checkout?plan=${encodeURIComponent(plan)}&price=${price}&details=${encodeURIComponent(details)}`);
+            redirectToCheckout();
             
             return 60;
           }
@@ -132,7 +164,7 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
       clearInterval(countdownInterval);
       clearInterval(typingInterval);
     };
-  }, [isCalling, isAgentOnLine, fullPhone, router, tenantSlug]);
+  }, [isCalling, isAgentOnLine, fullPhone]);
 
   async function handleBrowserAnswer() {
     try {
@@ -198,6 +230,11 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
         throw new Error(outboundError?.error || 'Outbound call could not be started.');
       }
 
+      const outboundData = await outboundResponse.json().catch(() => null);
+      const conversationId = outboundData?.data?.conversation_id || null;
+      setTwilioConversationId(conversationId);
+      setTwilioStatus('dialing');
+
       setIsSubmitting(false);
       setIsCalling(true);
       setIsAgentOnLine(false);
@@ -221,6 +258,10 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
             setIsCalling(false);
           setIsAgentOnLine(false);
           setHasBrowserConnected(false);
+            browserConnectedRef.current = false;
+          setTwilioConversationId(null);
+          setTwilioStatus('dialing');
+          redirectGuardRef.current = false;
             form.reset();
         }
     }}>
@@ -349,6 +390,11 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
                 <p className={`text-[10px] font-bold uppercase tracking-widest italic ${isAgentOnLine ? 'text-emerald-500' : 'text-primary animate-pulse'}`}>
                     {isAgentOnLine ? 'LIVE VOICE SESSION ACTIVE' : 'STANDBY FOR AI VOICE HANDSHAKE...'}
                 </p>
+                {!isAgentOnLine && (
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    PHONE STATUS: {twilioStatus}
+                  </p>
+                )}
             </div>
 
             {!isAgentOnLine && (
@@ -368,6 +414,7 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
                   if (conversation.status === 'connected') {
                     await conversation.endSession();
                   }
+                  redirectToCheckout();
                 }}
                 className="rounded-none border-2 font-black uppercase italic tracking-widest text-[10px] h-12 px-10 hover:bg-destructive hover:text-white hover:border-destructive transition-all relative z-10"
             >
