@@ -71,8 +71,8 @@ export function FreeTrialDialog({ children, tenantSlug }: { children: React.Reac
             const price = "1800";
             const details = "Inversión Total: $1,800. Forma de Pago: 2 exhibiciones de $900. Regalo: 1 Kimono + Uniforme No-Gi.";
             
-            // Redirect to the tenant-specific checkout or a general success page
-            router.push(`/${tenantSlug}/checkout?plan=${encodeURIComponent(plan)}&price=${price}&details=${encodeURIComponent(details)}`);
+            // Redirect to the shared checkout route and pass tenant slug as query param.
+            router.push(`/checkout?slug=${encodeURIComponent(tenantSlug)}&plan=${encodeURIComponent(plan)}&price=${price}&details=${encodeURIComponent(details)}`);
             
             return 60;
           }
