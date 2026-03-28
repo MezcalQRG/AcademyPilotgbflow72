@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   ShieldCheck, 
   Key, 
@@ -36,18 +36,43 @@ import { showErrorToast } from '@/lib/client-errors';
 import { 
   useUser, 
   useFirestore, 
+  useAuth,
   useDoc, 
   useCollection, 
   useMemoFirebase,
 } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
+import { useSearchParams } from 'next/navigation';
+import { GoogleAuthProvider, linkWithPopup, updatePassword } from 'firebase/auth';
+import { z } from 'zod';
+
+const passwordSetupSchema = z.object({
+  password: z.string().trim().min(8, 'Password must be at least 8 characters').max(128, 'Password too long'),
+  confirmPassword: z.string().trim().min(8, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
+const recoveryPhoneSchema = z.string().trim().regex(/^\+?[1-9]\d{8,14}$/, 'Use E.164 format. Example: +14155552671');
 
 export default function AcademySettingsPage() {
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const [copied, setCopied] = useState(false);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState('push');
+
+  // Account Security form state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [recoveryPhone, setRecoveryPhone] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [isSavingRecovery, setIsSavingRecovery] = useState(false);
+  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
   
   // Handshake Form State
   const [initApiKey, setInitApiKey] = useState('');
@@ -60,6 +85,47 @@ export default function AcademySettingsPage() {
     return doc(db, 'user_profiles', user.uid);
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
+
+  const isOnboardingFlow = searchParams.get('onboarding') === '1';
+  const requestedTab = searchParams.get('tab');
+
+  const isGoogleConnected = useMemo(
+    () => Boolean(user?.providerData?.some((provider) => provider.providerId === 'google.com') || profile?.googleConnected),
+    [user, profile]
+  );
+
+  useEffect(() => {
+    if (requestedTab === 'account') {
+      setActiveTab('account');
+    }
+  }, [requestedTab]);
+
+  useEffect(() => {
+    setRecoveryPhone((profile?.recoveryPhone as string) || '');
+  }, [profile?.recoveryPhone]);
+
+  useEffect(() => {
+    const syncEmailVerified = async () => {
+      if (!user?.emailVerified || !profile || (profile as any).emailVerified) {
+        return;
+      }
+
+      try {
+        await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            emailVerified: true,
+          }),
+        });
+      } catch (error) {
+        console.warn('Failed to sync emailVerified profile flag', error);
+      }
+    };
+
+    syncEmailVerified();
+  }, [user, profile]);
 
   // Integration Configs Reference
   const configsRef = useMemoFirebase(() => {
@@ -150,6 +216,122 @@ export default function AcademySettingsPage() {
     }
   };
 
+  const handleSavePassword = async () => {
+    if (!auth?.currentUser || !user) {
+      toast({ variant: 'destructive', title: 'AUTH REQUIRED', description: 'Sign in again to manage password settings.' });
+      return;
+    }
+
+    const parsed = passwordSetupSchema.safeParse({ password: newPassword, confirmPassword });
+    if (!parsed.success) {
+      toast({
+        variant: 'destructive',
+        title: 'PASSWORD VALIDATION FAILED',
+        description: parsed.error.issues[0]?.message || 'Invalid password input.',
+      });
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      await updatePassword(auth.currentUser, parsed.data.password);
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          hasPassword: true,
+          securitySetupRequired: false,
+          onboardingCompleted: true,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to persist password status.');
+
+      setNewPassword('');
+      setConfirmPassword('');
+      toast({ title: 'PASSWORD SECURED', description: 'Your account password is now configured.' });
+    } catch (error: any) {
+      const code = error?.code as string | undefined;
+      const message =
+        code === 'auth/requires-recent-login'
+          ? 'For security, reauthenticate with your email link and retry password setup.'
+          : error?.message || 'Could not set your password.';
+      showErrorToast(toast, 'PASSWORD SETUP FAILED', error, message);
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
+
+  const handleConnectGoogle = async () => {
+    if (!auth?.currentUser || !user) {
+      toast({ variant: 'destructive', title: 'AUTH REQUIRED', description: 'Sign in to connect Google.' });
+      return;
+    }
+
+    if (isGoogleConnected) {
+      toast({ title: 'GOOGLE ALREADY LINKED', description: 'Your account is already connected to Google.' });
+      return;
+    }
+
+    setIsLinkingGoogle(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await linkWithPopup(auth.currentUser, provider);
+
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          googleConnected: true,
+          securitySetupRequired: false,
+          onboardingCompleted: true,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to persist Google link status.');
+
+      toast({ title: 'GOOGLE LINKED', description: 'You can now sign in with your Google account.' });
+    } catch (error: any) {
+      showErrorToast(toast, 'GOOGLE LINK FAILED', error, 'Could not connect your Google account.');
+    } finally {
+      setIsLinkingGoogle(false);
+    }
+  };
+
+  const handleSaveRecoveryPhone = async () => {
+    if (!user) return;
+
+    const parsed = recoveryPhoneSchema.safeParse(recoveryPhone);
+    if (!parsed.success) {
+      toast({
+        variant: 'destructive',
+        title: 'INVALID PHONE FORMAT',
+        description: parsed.error.issues[0]?.message || 'Recovery phone is invalid.',
+      });
+      return;
+    }
+
+    setIsSavingRecovery(true);
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          recoveryPhone: parsed.data,
+          securitySetupRequired: false,
+          onboardingCompleted: true,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to store recovery phone.');
+      toast({ title: 'RECOVERY PHONE SAVED', description: 'Recovery phone has been updated.' });
+    } catch (error: any) {
+      showErrorToast(toast, 'RECOVERY UPDATE FAILED', error, 'Could not save recovery phone number.');
+    } finally {
+      setIsSavingRecovery(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-700">
       <div className="border-l-4 border-primary pl-6">
@@ -157,7 +339,7 @@ export default function AcademySettingsPage() {
         <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-2">Ops: Managing Tactical Handshakes & Vendor Credentials</p>
       </div>
 
-      <Tabs defaultValue="push" className="space-y-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList className="bg-secondary/10 border-2 border-border p-1 rounded-none flex-wrap h-auto">
           <TabsTrigger value="push" className="rounded-none font-black uppercase italic tracking-widest text-xs px-8 data-[state=active]:bg-primary data-[state=active]:text-white gap-2 h-12">
             <Globe className="w-4 h-4" /> Push Protocols
@@ -167,6 +349,9 @@ export default function AcademySettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="vendors" className="rounded-none font-black uppercase italic tracking-widest text-xs px-8 data-[state=active]:bg-primary data-[state=active]:text-white gap-2 h-12">
             <Key className="w-4 h-4" /> Vendor Credentials
+          </TabsTrigger>
+          <TabsTrigger value="account" className="rounded-none font-black uppercase italic tracking-widest text-xs px-8 data-[state=active]:bg-primary data-[state=active]:text-white gap-2 h-12">
+            <ShieldCheck className="w-4 h-4" /> Inicio de sesión y contraseña
           </TabsTrigger>
         </TabsList>
 
@@ -289,6 +474,122 @@ export default function AcademySettingsPage() {
               existingData={configs?.find(c => c.id === 'vendor_twilio')}
             />
             {/* ... other vendor cards follow same pattern */}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="account" className="space-y-8 animate-in fade-in duration-500">
+          {isOnboardingFlow && (
+            <Card className="rounded-none border-2 border-primary bg-primary/5 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-base font-black uppercase italic tracking-tight text-primary">
+                  Completa la seguridad de tu cuenta
+                </CardTitle>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+                  Confirma tu email y configura estos tres bloques para terminar onboarding.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="rounded-none border-2 border-border bg-card shadow-md">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase italic tracking-tight flex items-center gap-2">
+                  <Key className="h-4 w-4 text-primary" /> Crear contraseña
+                </CardTitle>
+                <CardDescription className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">
+                  Configura password de inicio de sesión (2 campos).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest">Nueva contraseña</Label>
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="rounded-none border-2 h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest">Confirmar contraseña</Label>
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="rounded-none border-2 h-11"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={handleSavePassword}
+                  disabled={isSavingPassword || !newPassword || !confirmPassword}
+                  className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-black uppercase italic tracking-widest h-11"
+                >
+                  {isSavingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Guardar contraseña
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="rounded-none border-2 border-border bg-card shadow-md">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase italic tracking-tight flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" /> Connect your Google account
+                </CardTitle>
+                <CardDescription className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">
+                  Habilita login con Google para acceso rápido.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Badge className="rounded-none border-2 border-border bg-secondary/10 text-foreground text-[9px] uppercase font-black tracking-widest">
+                  {isGoogleConnected ? 'Google linked' : 'Google not linked'}
+                </Badge>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={handleConnectGoogle}
+                  disabled={isLinkingGoogle || isGoogleConnected}
+                  className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-black uppercase italic tracking-widest h-11"
+                >
+                  {isLinkingGoogle ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                  {isGoogleConnected ? 'Google conectado' : 'Conectar Google'}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="rounded-none border-2 border-border bg-card shadow-md lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase italic tracking-tight flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-primary" /> Add recovery phone number
+                </CardTitle>
+                <CardDescription className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">
+                  Formato E.164 (ejemplo: +14155552671).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2 max-w-lg">
+                <Label className="text-[10px] font-black uppercase tracking-widest">Recovery phone</Label>
+                <Input
+                  value={recoveryPhone}
+                  onChange={(e) => setRecoveryPhone(e.target.value)}
+                  placeholder="+14155552671"
+                  className="rounded-none border-2 h-11"
+                />
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={handleSaveRecoveryPhone}
+                  disabled={isSavingRecovery || !recoveryPhone}
+                  className="rounded-none bg-primary hover:bg-primary/90 text-white font-black uppercase italic tracking-widest h-11"
+                >
+                  {isSavingRecovery ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Guardar recovery phone
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

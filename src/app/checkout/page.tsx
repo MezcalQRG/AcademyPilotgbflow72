@@ -10,13 +10,16 @@ import { PaymentMethodForm } from "@/components/leads/payment-method-form";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck, Zap, CreditCard, ArrowLeft, CheckCircle2, X, ChevronDown } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { getAcademyPhotos } from "@/app/actions";
+import { completeCheckoutOnboardingAction, getAcademyPhotos } from "@/app/actions";
 import { BackgroundPhotoRotation } from "@/components/landing/background-photo-rotation";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import type { PaymentMethodFormData } from "@/components/leads/payment-method-form";
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -33,6 +36,8 @@ function CheckoutContent() {
   const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [agreementScrollRef, setAgreementScrollRef] = useState<HTMLDivElement | null>(null);
+  const [postCheckoutRedirectPath, setPostCheckoutRedirectPath] = useState<string | null>(null);
+  const auth = useAuth();
 
   const planTitle = searchParams.get("plan") || "Strategic Plan";
   const planDetails = searchParams.get("details") || "Mission initialization details pending.";
@@ -64,15 +69,15 @@ function CheckoutContent() {
             setCountdown((prev) => prev - 1);
         }, 1000);
     } else if (isSuccess && countdown === 0) {
-        // Redirection protocol: Forwarding unit to the Academy Dashboard
-        const dashboardUrl = academySlug 
-          ? `/${academySlug}/dashboard`
-          : "/student/dashboard";
+        // Redirection protocol: route to Account Security onboarding tab.
+        const dashboardUrl = postCheckoutRedirectPath || (academySlug
+          ? `/${academySlug}/dashboard/settings?tab=account&onboarding=1`
+          : "/");
         router.push(dashboardUrl);
     }
 
     return () => clearInterval(timer);
-  }, [isSuccess, countdown, router]);
+  }, [isSuccess, countdown, router, academySlug, postCheckoutRedirectPath]);
 
   // Tactical logic to find the correct asset for display
   const tacticalAsset = assetId 
@@ -109,7 +114,7 @@ function CheckoutContent() {
     }
   };
 
-  const handlePaymentSubmit = async (data: any) => {
+  const handlePaymentSubmit = async (data: PaymentMethodFormData) => {
     // Require agreement acceptance for academy owner accounts
     if (itemType === 'membership' && !isAgreementAccepted) {
       setIsAgreementOpen(true);
@@ -120,25 +125,71 @@ function CheckoutContent() {
       });
       return;
     }
-    setIsProcessing(true);
-    
-    // Simulated tactical handshake
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    if (isCouponApplied) {
+
+    if (itemType === 'membership' && !academySlug.trim()) {
       toast({
-        title: "PROTOCOL BYPASS ACTIVE",
-        description: "Mission authorized via verified tactical coupon. Deploying unit.",
+        variant: "destructive",
+        title: "ACADEMY SLUG REQUIRED",
+        description: "Define your academy slug before completing checkout.",
       });
-    } else {
-      toast({
-        title: "ENROLLMENT SECURED",
-        description: `OSS! Tactical link established for ${planTitle.toUpperCase()}. Welcome to the team.`,
-      });
+      return;
     }
-    
-    setIsProcessing(false);
-    setIsSuccess(true);
+
+    setIsProcessing(true);
+
+    try {
+      if (itemType === 'membership') {
+        const normalizedEmail = data.email.trim().toLowerCase();
+        const result = await completeCheckoutOnboardingAction({
+          email: normalizedEmail,
+          fullName: data.cardholderName,
+          phoneNumber: data.phoneNumber,
+          tenantSlug: academySlug,
+          planTitle,
+        });
+
+        if (result?.error) {
+          throw new Error(result.error);
+        }
+
+        if (result?.temporaryPassword && auth) {
+          try {
+            await signInWithEmailAndPassword(auth, normalizedEmail, result.temporaryPassword);
+          } catch (error) {
+            // Non-blocking: user still gets magic link + verify link in email.
+            console.warn('Auto sign-in after checkout failed', error);
+          }
+        }
+
+        if (result?.redirectPath) {
+          setPostCheckoutRedirectPath(result.redirectPath);
+        }
+
+        toast({
+          title: "ENROLLMENT SECURED",
+          description: result?.emailWarning
+            ? "Academy created. We could not dispatch the template email automatically."
+            : "Academy created. Check your inbox to confirm your email.",
+        });
+      } else {
+        // Fallback for non-membership checkout paths.
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        toast({
+          title: "ENROLLMENT SECURED",
+          description: `OSS! Tactical link established for ${planTitle.toUpperCase()}. Welcome to the team.`,
+        });
+      }
+
+      setIsSuccess(true);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "CHECKOUT FAILED",
+        description: error?.message || "Could not complete academy onboarding.",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -303,7 +354,10 @@ function CheckoutContent() {
               <div className="space-y-4">
                 <h4 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-green-500 drop-shadow-sm">MISSION SUCCESS</h4>
                 <p className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-foreground animate-pulse">
-                  ESTABLISHING DASHBOARD LINK...
+                  CONFIRMA TU EMAIL PARA ACCEDER A TU CUENTA
+                </p>
+                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
+                  REDIRECTING TO ACCOUNT SECURITY SETTINGS...
                 </p>
               </div>
             </div>

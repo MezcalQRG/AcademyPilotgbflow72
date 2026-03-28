@@ -28,10 +28,22 @@ const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, i) => (currentYear + i).toString().slice(-2));
 const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
 
+const normalizedEmailField = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email({ message: "Invalid tactical email" });
+
+const normalizedPhoneField = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/[^\d+]/g, ''))
+  .refine((value) => /^\+?[1-9]\d{8,14}$/.test(value), { message: 'Use E.164 format (+14155552671)' });
+
 const paymentMethodSchema = z.object({
-  cardholderName: z.string().min(2, { message: "Required (Min 2 chars)" }),
-  email: z.string().email({ message: "Invalid tactical email" }),
-  phoneNumber: z.string().min(10, { message: "Invalid comm link" }),
+  cardholderName: z.string().trim().min(2, { message: "Required (Min 2 chars)" }),
+  email: normalizedEmailField,
+  phoneNumber: normalizedPhoneField,
   cardNumber: z.string().min(13).max(19).regex(/^\d+$/),
   expiryMonth: z.string().min(1),
   expiryYear: z.string().min(1),

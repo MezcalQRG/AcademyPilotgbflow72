@@ -36,6 +36,231 @@ async function resolveAppBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || 'https://graciebarra.ai';
 }
 
+async function resolveTenantSlugForEmail(email: string): Promise<string | null> {
+  const admin = getFirebaseAdmin();
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const profileByExactEmail = await admin
+    .firestore()
+    .collection('user_profiles')
+    .where('email', '==', email)
+    .limit(1)
+    .get();
+
+  if (!profileByExactEmail.empty) {
+    const tenantSlug = profileByExactEmail.docs[0].data()?.tenantSlug;
+    return typeof tenantSlug === 'string' && tenantSlug.length > 0 ? tenantSlug : null;
+  }
+
+  const profileByNormalizedEmail = await admin
+    .firestore()
+    .collection('user_profiles')
+    .where('email', '==', normalizedEmail)
+    .limit(1)
+    .get();
+
+  if (!profileByNormalizedEmail.empty) {
+    const tenantSlug = profileByNormalizedEmail.docs[0].data()?.tenantSlug;
+    return typeof tenantSlug === 'string' && tenantSlug.length > 0 ? tenantSlug : null;
+  }
+
+  return null;
+}
+
+function normalizeCheckoutEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function normalizeTenantSlug(rawSlug: string) {
+  return rawSlug
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function generateTemporaryPassword() {
+  const random = Math.random().toString(36).slice(2);
+  // Strong enough temporary password for initial bootstrap sign-in.
+  return `GbAi!${random}#${Date.now().toString(36)}`;
+}
+
+type CompleteCheckoutOnboardingInput = {
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  tenantSlug: string;
+  planTitle?: string;
+};
+
+export async function completeCheckoutOnboardingAction(input: CompleteCheckoutOnboardingInput) {
+  const requestId = createRequestId();
+
+  try {
+    const email = normalizeCheckoutEmail(input.email || '');
+    const tenantSlug = normalizeTenantSlug(input.tenantSlug || '');
+    const fullName = (input.fullName || '').trim();
+    const phoneNumber = (input.phoneNumber || '').trim();
+
+    if (!email || !tenantSlug || !fullName) {
+      return { error: 'Missing required onboarding fields.', requestId };
+    }
+
+    const admin = getFirebaseAdmin();
+    const db = admin.firestore();
+    const appBaseUrl = await resolveAppBaseUrl();
+
+    const slugConflict = await db
+      .collection('user_profiles')
+      .where('tenantSlug', '==', tenantSlug)
+      .limit(1)
+      .get();
+
+    if (!slugConflict.empty) {
+      return {
+        error: `The academy slug '${tenantSlug}' is already in use.`,
+        requestId,
+      };
+    }
+
+    let existingUser = null;
+    try {
+      existingUser = await admin.auth().getUserByEmail(email);
+    } catch (error: any) {
+      if (error?.code !== 'auth/user-not-found') {
+        throw error;
+      }
+    }
+
+    if (existingUser) {
+      return {
+        error: 'An account with this email already exists. Please sign in instead.',
+        requestId,
+      };
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+    const createdUser = await admin.auth().createUser({
+      email,
+      password: temporaryPassword,
+      displayName: fullName,
+      emailVerified: false,
+      disabled: false,
+    });
+
+    const onboardingPath = `/${tenantSlug}/dashboard/settings?tab=account&onboarding=1`;
+    const onboardingUrl = `${appBaseUrl}${onboardingPath}`;
+
+    const actionCodeSettings = {
+      url: `${onboardingUrl}&email=${encodeURIComponent(email)}`,
+      handleCodeInApp: true,
+    };
+
+    const [magicLoginLink, verifyEmailLink] = await Promise.all([
+      admin.auth().generateSignInWithEmailLink(email, actionCodeSettings),
+      admin.auth().generateEmailVerificationLink(email, actionCodeSettings),
+    ]);
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    await db.collection('user_profiles').doc(createdUser.uid).set(
+      {
+        uid: createdUser.uid,
+        email,
+        name: fullName,
+        role: 'academy_owner',
+        tenantSlug,
+        phoneNumber,
+        onboardingCompleted: false,
+        securitySetupRequired: true,
+        hasPassword: true,
+        googleConnected: false,
+        emailVerified: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    await db.collection('landing_pages').doc(tenantSlug).set(
+      {
+        slug: tenantSlug,
+        branchName: fullName,
+        ownerUid: createdUser.uid,
+        headline: `Welcome to ${fullName}`,
+        isPublished: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    let emailWarning: string | null = null;
+    try {
+      await dispatchOrchestratorAction(
+        'SEND_EMAIL',
+        {
+          userEmail: email,
+          templateType: 'account-created',
+          userData: {
+            user_name: fullName,
+            company_name: tenantSlug,
+            login_url: magicLoginLink,
+            // Backward-compatible aliases for future template updates.
+            name: fullName,
+            loginUrl: magicLoginLink,
+            magic_link: magicLoginLink,
+            verifyEmailUrl: verifyEmailLink,
+            verify_email_url: verifyEmailLink,
+            welcomeMessage: `Gracias por crear tu cuenta en graciebarra.ai para ${input.planTitle || 'tu nueva academia'}.`,
+            welcome_message: 'Confirma tu email para activar todos los accesos de dashboard.',
+            academySlug: tenantSlug,
+            location: tenantSlug,
+          },
+          redirectUrl: onboardingPath,
+        },
+        requestId
+      );
+    } catch (error: any) {
+      emailWarning = error?.message || 'Unable to send account email at this time.';
+      logger.error('Account-created template dispatch failed', {
+        requestId,
+        scope: 'server-action.completeCheckoutOnboardingAction',
+        email,
+        tenantSlug,
+        error: serializeError(error),
+      });
+    }
+
+    return {
+      success: true,
+      requestId,
+      uid: createdUser.uid,
+      email,
+      temporaryPassword,
+      redirectPath: onboardingPath,
+      verifyEmailLink,
+      emailWarning,
+    };
+  } catch (error: any) {
+    logger.error('Checkout onboarding failed', {
+      requestId,
+      scope: 'server-action.completeCheckoutOnboardingAction',
+      error: serializeError(error),
+      input: {
+        email: input?.email,
+        tenantSlug: input?.tenantSlug,
+      },
+    });
+
+    return {
+      error: error?.message || 'Failed to complete checkout onboarding.',
+      requestId,
+    };
+  }
+}
+
 /**
  * High-authority directive to initiate a tactical magic link login via AWS SES.
  */
@@ -45,11 +270,13 @@ export async function initiateTacticalLoginAction(email: string) {
   try {
     const admin = getFirebaseAdmin();
     const appBaseUrl = await resolveAppBaseUrl();
+    const tenantSlug = await resolveTenantSlugForEmail(email);
+    const continuePath = tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard';
     
     // 1. Generate the secure tactical link
     const actionCodeSettings = {
-      // Direct link back to the pilot dashboard
-      url: `${appBaseUrl}/dashboard?email=${encodeURIComponent(email)}`,
+      // Tenant-aware redirect when available, fallback for unknown profiles.
+      url: `${appBaseUrl}${continuePath}?email=${encodeURIComponent(email)}`,
       handleCodeInApp: true,
     };
     

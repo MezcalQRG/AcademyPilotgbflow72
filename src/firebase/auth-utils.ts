@@ -6,6 +6,9 @@ import {
   ActionCodeSettings,
   signInWithEmailLink,
   isSignInWithEmailLink,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
   signOut
 } from 'firebase/auth';
 
@@ -54,5 +57,36 @@ export async function completeMagicLinkSignIn(auth: Auth): Promise<void> {
         throw error;
       }
     }
+  }
+}
+
+/**
+ * Signs in a user with email and password.
+ * Awaited — throws on bad credentials so the caller can show an error toast.
+ */
+export async function signInWithEmailPasswordAsync(auth: Auth, email: string, password: string): Promise<void> {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error: any) {
+    console.error('Email/password sign-in failure:', error);
+    throw error;
+  }
+}
+
+/**
+ * Signs in a user via Google OAuth popup.
+ * Awaited — throws on cancellation or error so the caller can show an error toast.
+ */
+export async function signInWithGoogle(auth: Auth): Promise<void> {
+  const provider = new GoogleAuthProvider();
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error: any) {
+    // Ignore popup-closed-by-user — not a real error
+    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+      return;
+    }
+    console.error('Google sign-in failure:', error);
+    throw error;
   }
 }
