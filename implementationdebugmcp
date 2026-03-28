@@ -1,0 +1,308 @@
+import express from "express"
+import fs from "fs"
+import { execSync } from "child_process"
+import path from "path"
+
+type State =
+  | "WAIT_FOR_ERROR"
+  | "READ_LOG"
+  | "TRIAGE"
+  | "FIX"
+  | "VERIFY"
+  | "COMMIT"
+
+type ToolName = "read" | "search" | "edit" | "execute" | "git"
+
+let state: State = "WAIT_FOR_ERROR"
+
+const SERVER_PORT = Number(process.env.TOOL_GATE_PORT ?? "3333")
+const EXEC_TIMEOUT_MS = Number(process.env.EXEC_TIMEOUT_MS ?? "12000")
+const MAX_STEPS_PER_CYCLE = Number(process.env.MAX_STEPS_PER_CYCLE ?? "12")
+const MAX_RETRIES_PER_STATE = Number(process.env.MAX_RETRIES_PER_STATE ?? "2")
+
+let cycleId = 1
+let stepCount = 0
+
+// Tracks failed attempts to prevent infinite retries in a single state.
+const retryCount: Record<State, number> = {
+  WAIT_FOR_ERROR: 0,
+  READ_LOG: 0,
+  TRIAGE: 0,
+  FIX: 0,
+  VERIFY: 0,
+  COMMIT: 0
+}
+
+// Registro de herramientas usadas por estado
+const usageHistory: Record<State, ToolName[]> = {
+  WAIT_FOR_ERROR: [],
+  READ_LOG: [],
+  TRIAGE: [],
+  FIX: [],
+  VERIFY: [],
+  COMMIT: []
+}
+
+// Herramientas permitidas por estado
+const allowed: Record<State, ToolName[]> = {
+  WAIT_FOR_ERROR: [],
+  READ_LOG: ["read"],
+  TRIAGE: ["read", "search"],
+  FIX: ["edit"],
+  VERIFY: ["execute"],
+  COMMIT: ["git"]
+}
+
+const nextStateMap: Record<State, State> = {
+  WAIT_FOR_ERROR: "READ_LOG",
+  READ_LOG: "TRIAGE",
+  TRIAGE: "FIX",
+  FIX: "VERIFY",
+  VERIFY: "COMMIT",
+  COMMIT: "WAIT_FOR_ERROR"
+}
+
+function clearStateTracking() {
+  ;(Object.keys(usageHistory) as State[]).forEach(s => {
+    usageHistory[s] = []
+    retryCount[s] = 0
+  })
+}
+
+function resetCycle() {
+  state = "WAIT_FOR_ERROR"
+  stepCount = 0
+  cycleId += 1
+  clearStateTracking()
+}
+
+function advanceState(forced = false) {
+  const previous = state
+  state = nextStateMap[state]
+  retryCount[previous] = 0
+
+  if (state === "WAIT_FOR_ERROR") {
+    stepCount = 0
+    cycleId += 1
+    clearStateTracking()
+  }
+
+  return { previous, current: state, forced }
+}
+
+function shouldAbortCycle() {
+  return stepCount >= MAX_STEPS_PER_CYCLE
+}
+
+const app: any = express()
+app.use(express.json())
+
+// -------------------------
+// Tool implementations
+// -------------------------
+const tools: Record<ToolName, (args: any) => Promise<unknown>> = {
+  async read({ path }: { path: string }) {
+    if (!fs.existsSync(path)) throw new Error("File does not exist: " + path)
+    return fs.readFileSync(path, "utf8")
+  },
+
+  async search({ path: filePath, query }: { path: string; query: string }) {
+    if (!query || query.trim().length === 0) {
+      throw new Error("Missing search query")
+    }
+    if (!fs.existsSync(filePath)) throw new Error("File does not exist: " + filePath)
+
+    const resolved = path.resolve(filePath)
+    const content = fs.readFileSync(resolved, "utf8")
+    const lines = content.split("\n")
+    const hits: Array<{ line: number; text: string }> = []
+
+    lines.forEach((line, i) => {
+      if (line.toLowerCase().includes(query.toLowerCase())) {
+        hits.push({ line: i + 1, text: line })
+      }
+    })
+
+    return {
+      path: resolved,
+      query,
+      matches: hits,
+      totalMatches: hits.length
+    }
+  },
+
+  async edit({ path, content }: { path: string; content: string }) {
+    if (!fs.existsSync(path)) throw new Error("File does not exist: " + path)
+    fs.writeFileSync(path, content)
+    return "file updated"
+  },
+
+  async execute({ cmd }: { cmd: string }) {
+    // Evitar inyecciones básicas
+    if (!cmd.match(/^[a-zA-Z0-9_\- ./]+$/)) throw new Error("Unsafe command")
+    return execSync(cmd, { timeout: EXEC_TIMEOUT_MS, encoding: "utf8" })
+  },
+
+  async git({ cmd }: { cmd: string }) {
+    if (!cmd.match(/^[a-zA-Z0-9_\- ]+$/)) throw new Error("Unsafe git command")
+    return execSync(`git ${cmd}`, { timeout: EXEC_TIMEOUT_MS, encoding: "utf8" })
+  }
+}
+
+// -------------------------
+// Endpoints
+// -------------------------
+app.get("/tools", (_: any, res: any) => {
+  res.json({
+    cycleId,
+    stepCount,
+    state,
+    tools: Object.keys(tools),
+    allowed: allowed[state],
+    usageHistory: usageHistory[state],
+    retryCount: retryCount[state],
+    limits: {
+      maxStepsPerCycle: MAX_STEPS_PER_CYCLE,
+      maxRetriesPerState: MAX_RETRIES_PER_STATE,
+      execTimeoutMs: EXEC_TIMEOUT_MS
+    }
+  })
+})
+
+app.get("/status", (_: any, res: any) => {
+  res.json({
+    cycleId,
+    stepCount,
+    state,
+    usageHistory,
+    retryCount,
+    limits: {
+      maxStepsPerCycle: MAX_STEPS_PER_CYCLE,
+      maxRetriesPerState: MAX_RETRIES_PER_STATE,
+      execTimeoutMs: EXEC_TIMEOUT_MS
+    }
+  })
+})
+
+app.post("/signal-error", (_: any, res: any) => {
+  if (state !== "WAIT_FOR_ERROR") {
+    return res.status(409).json({
+      error: "Cannot signal error outside WAIT_FOR_ERROR",
+      state,
+      suggestedNextState: state
+    })
+  }
+
+  const transitioned = advanceState(true)
+  return res.json({
+    message: "Error signal received, cycle started",
+    transition: transitioned,
+    cycleId,
+    stepCount,
+    state
+  })
+})
+
+app.post("/advance", (_: any, res: any) => {
+  const transitioned = advanceState(true)
+  return res.json({
+    message: "State advanced manually",
+    transition: transitioned,
+    state,
+    cycleId,
+    stepCount
+  })
+})
+
+app.post("/tool", async (req: any, res: any) => {
+  const { tool, args } = req.body as { tool?: ToolName; args?: any }
+
+  if (!tool || !(tool in tools)) {
+    return res.status(400).json({
+      error: "Unknown or missing tool",
+      state,
+      allowed: allowed[state]
+    })
+  }
+
+  if (state === "WAIT_FOR_ERROR") {
+    return res.status(409).json({
+      error: "Cycle is idle. Send POST /signal-error to start.",
+      state,
+      suggestedNextState: "READ_LOG"
+    })
+  }
+
+  if (shouldAbortCycle()) {
+    resetCycle()
+    return res.status(429).json({
+      error: "Cycle aborted: max steps reached",
+      state,
+      suggestedNextState: "WAIT_FOR_ERROR"
+    })
+  }
+
+  // Check tool is allowed in current state
+  if (!allowed[state].includes(tool)) {
+    return res.status(403).json({
+      error: `Tool ${tool} not allowed in state ${state}`,
+      suggestedNextState: state,
+      allowed: allowed[state]
+    })
+  }
+
+  // Check cooldown / repeated use
+  if (usageHistory[state].includes(tool)) {
+    return res.status(429).json({
+      error: `Tool ${tool} already used in state ${state}, wait for next cycle`,
+      suggestedNextState: nextStateMap[state]
+    })
+  }
+
+  try {
+    stepCount += 1
+    const result = await tools[tool](args)
+    usageHistory[state].push(tool)
+    retryCount[state] = 0
+
+    const transition = advanceState()
+
+    res.json({ result, state, transition, cycleId, stepCount })
+  } catch (e: any) {
+    retryCount[state] += 1
+
+    if (retryCount[state] > MAX_RETRIES_PER_STATE) {
+      const transition = advanceState(true)
+      return res.status(409).json({
+        error: "Max retries reached in state, forcing transition",
+        details: e.message,
+        tool,
+        attemptedArgs: args,
+        transition,
+        state,
+        cycleId,
+        stepCount
+      })
+    }
+
+    return res.status(500).json({
+      error: e.message,
+      tool,
+      state,
+      attemptedArgs: args,
+      retryCount: retryCount[state],
+      retriesRemaining: MAX_RETRIES_PER_STATE - retryCount[state],
+      suggestedNextState: state
+    })
+  }
+})
+
+// Reset para un nuevo ciclo (opcional)
+app.post("/reset", (_: any, res: any) => {
+  resetCycle()
+  res.json({ message: "State and cycle tracking reset", state, cycleId, stepCount })
+})
+
+app.listen(SERVER_PORT, () => {
+  console.log(`Tool Gate MCP running on :${SERVER_PORT}`)
+})

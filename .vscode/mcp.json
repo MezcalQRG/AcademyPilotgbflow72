@@ -1,33 +1,13 @@
 {
-	"servers": {
-		 "firebase": {
+  "servers": {
+    "debug-log-remediator-gate": {
       "command": "npx",
-      "args": ["-y", "firebase-tools@latest", "mcp"]
-    },
-
-    "aws-knowledge-mcp-server": {
-      "url": "https://knowledge-mcp.global.api.aws",
-      "type": "http"
-    },
-    "awslabs.aws-serverless-mcp": {
-      "command": "uvx",
-      "args": [
-        "awslabs.aws-serverless-mcp-server@latest"
-      ],
-      "env": { 
-        "AWS_PROFILE": "default",
-        "AWS_REGION": "us-east-2",
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
-    },
-     "ElevenLabs": {
-      "command": "npx",
-      "args": ["-y", "elevenlabs-mcp-enhanced"],
+      "args": ["-y", "tsx", "./implementationdebugmcp.ts"],
       "env": {
-        "ELEVENLABS_API_KEY": "sk_908ed7e1b24e4327f378d08426b9751127808b99a4e641a7"
+        "ELEVENLABS_API_KEY": "${sk_908ed7e1b24e4327f378d08426b9751127808b99a4e641a7}"
       }
     }
-	},
-	"inputs": []
+  },
+  "inputs": []
 }
 

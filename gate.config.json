@@ -1,0 +1,29 @@
+{
+  "execTimeoutMs": 12000,
+  "maxStepsPerCycle": 12,
+  "maxRetriesPerState": 2,
+  "states": [
+    "WAIT_FOR_ERROR",
+    "READ_LOG",
+    "TRIAGE",
+    "FIX",
+    "VERIFY",
+    "COMMIT"
+  ],
+  "allowedBuiltins": {
+    "WAIT_FOR_ERROR": [],
+    "READ_LOG":  ["read"],
+    "TRIAGE":    ["read", "search"],
+    "FIX":       ["edit"],
+    "VERIFY":    ["execute"],
+    "COMMIT":    ["git"]
+  },
+  "downstreamPassthrough": {
+    "WAIT_FOR_ERROR": [],
+    "READ_LOG":  ["firebase"],
+    "TRIAGE":    ["firebase", "aws-knowledge-mcp-server"],
+    "FIX":       ["firebase", "awslabs.aws-serverless-mcp"],
+    "VERIFY":    ["awslabs.aws-serverless-mcp"],
+    "COMMIT":    ["firebase"]
+  }
+}
