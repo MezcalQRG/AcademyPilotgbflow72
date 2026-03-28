@@ -5,7 +5,8 @@ import {
   sendSignInLinkToEmail, 
   ActionCodeSettings,
   signInWithEmailLink,
-  isSignInWithEmailLink
+  isSignInWithEmailLink,
+  signOut
 } from 'firebase/auth';
 
 /**
@@ -42,6 +43,10 @@ export async function completeMagicLinkSignIn(auth: Auth): Promise<void> {
 
     if (email) {
       try {
+        // Sign out any currently signed-in user first to ensure clean tenant switching
+        if (auth.currentUser) {
+          await signOut(auth);
+        }
         await signInWithEmailLink(auth, email, window.location.href);
         window.localStorage.removeItem('emailForSignIn');
       } catch (error: any) {

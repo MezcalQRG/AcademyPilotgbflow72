@@ -5,7 +5,8 @@ import { LayoutDashboard, Users, Megaphone, Settings, LogOut, Mic, MessageSquare
 import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { GlobalChat } from "@/components/chat/global-chat";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useState, useEffect } from "react";
 
@@ -16,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const slug = params?.slug as string;
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const auth = useAuth();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
 
@@ -25,8 +27,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (isUserLoading) return;
 
       if (!user) {
-        // User not authenticated, redirect to sign-in
-        router.push("/auth/signin");
+        // User not authenticated, redirect to main landing page
+        router.push("/");
         return;
       }
 
@@ -36,8 +38,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const userProfileSnap = await getDoc(userProfileRef);
 
         if (!userProfileSnap.exists()) {
-          // User profile not found
-          router.push("/auth/signin");
+          // User profile not found - redirect to main page
+          router.push("/");
           return;
         }
 
@@ -61,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setIsAuthorized(true);
       } catch (error) {
         console.error("Error verifying tenant access:", error);
-        router.push("/auth/signin");
+        router.push("/");
       } finally {
         setIsFetchingProfile(false);
       }
@@ -146,7 +148,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="p-4 border-t border-border">
-            <SidebarMenuButton className="w-full text-destructive hover:bg-destructive/10 font-black uppercase tracking-[0.2em] text-[10px] rounded-none">
+            <SidebarMenuButton
+              className="w-full text-destructive hover:bg-destructive/10 font-black uppercase tracking-[0.2em] text-[10px] rounded-none"
+              onClick={async () => {
+                if (auth) {
+                  await signOut(auth);
+                }
+                router.push('/');
+              }}
+            >
               <LogOut className="h-5 w-5 mr-2" />
               <span>Sign Out</span>
             </SidebarMenuButton>
