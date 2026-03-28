@@ -9,9 +9,13 @@
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "backfill:tenant-bootstrap": "node scripts/backfill-tenant-bootstrap.js",
+    "offboard:pause": "node scripts/offboard-tenant.js --mode=pause",
+    "offboard:cancel": "node scripts/offboard-tenant.js --mode=cancel"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1019.0",
     "@elevenlabs/react": "latest",
     "@genkit-ai/google-genai": "^1.28.0",
     "@gsap/react": "^2.1.1",

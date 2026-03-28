@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { 
   ShieldCheck, 
   Key, 
@@ -23,6 +24,7 @@ import {
   Facebook,
   Map as MapIcon,
   Brain,
+  AlertTriangle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +47,7 @@ import { doc, collection } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { GoogleAuthProvider, linkWithPopup, updatePassword } from 'firebase/auth';
 import { z } from 'zod';
+import { MembershipDangerZone } from '@/components/membership/MembershipDangerZone';
 
 const passwordSetupSchema = z.object({
   password: z.string().trim().min(8, 'Password must be at least 8 characters').max(128, 'Password too long'),
@@ -58,6 +61,8 @@ const recoveryPhoneSchema = z.string().trim().regex(/^\+?[1-9]\d{8,14}$/, 'Use E
 
 export default function AcademySettingsPage() {
   const searchParams = useSearchParams();
+  const params = useParams();
+  const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params.slug[0] : '';
   const { toast } = useToast();
   const { user } = useUser();
   const auth = useAuth();
@@ -353,6 +358,9 @@ export default function AcademySettingsPage() {
           <TabsTrigger value="account" className="rounded-none font-black uppercase italic tracking-widest text-xs px-8 data-[state=active]:bg-primary data-[state=active]:text-white gap-2 h-12">
             <ShieldCheck className="w-4 h-4" /> Inicio de sesión y contraseña
           </TabsTrigger>
+          <TabsTrigger value="membership" className="rounded-none font-black uppercase italic tracking-widest text-xs px-8 data-[state=active]:bg-destructive data-[state=active]:text-white gap-2 h-12 text-destructive">
+            <AlertTriangle className="w-4 h-4" /> Membership
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="push" className="space-y-8 animate-in fade-in duration-500">
@@ -590,6 +598,24 @@ export default function AcademySettingsPage() {
                 </Button>
               </CardFooter>
             </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="membership" className="space-y-8 animate-in fade-in duration-500">
+          <div className="max-w-2xl space-y-6">
+            <div>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2 mb-1">
+                <AlertTriangle className="h-4 w-4 text-destructive" /> Membership Management
+              </h3>
+              <p className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">
+                Pause or permanently cancel your academy's membership below.
+                All actions require email verification for security.
+              </p>
+            </div>
+            <MembershipDangerZone
+              slug={slug}
+              academyName={(profile as any)?.name || (profile as any)?.branchName || slug}
+            />
           </div>
         </TabsContent>
       </Tabs>

@@ -87,6 +87,19 @@ function generateTemporaryPassword() {
   return `GbAi!${random}#${Date.now().toString(36)}`;
 }
 
+function getDefaultWeeklySchedule() {
+  return {
+    timezone: process.env.TZ || 'America/New_York',
+    monday: { open: '09:00', close: '20:00', closed: false },
+    tuesday: { open: '09:00', close: '20:00', closed: false },
+    wednesday: { open: '09:00', close: '20:00', closed: false },
+    thursday: { open: '09:00', close: '20:00', closed: false },
+    friday: { open: '09:00', close: '20:00', closed: false },
+    saturday: { open: '10:00', close: '14:00', closed: false },
+    sunday: { open: '10:00', close: '14:00', closed: true },
+  };
+}
+
 type CompleteCheckoutOnboardingInput = {
   email: string;
   fullName: string;
@@ -118,7 +131,9 @@ export async function completeCheckoutOnboardingAction(input: CompleteCheckoutOn
       .limit(1)
       .get();
 
-    if (!slugConflict.empty) {
+    const landingConflict = await db.collection('landing_pages').doc(tenantSlug).get();
+
+    if (!slugConflict.empty || landingConflict.exists) {
       return {
         error: `The academy slug '${tenantSlug}' is already in use.`,
         requestId,
@@ -164,8 +179,17 @@ export async function completeCheckoutOnboardingAction(input: CompleteCheckoutOn
     ]);
 
     const now = admin.firestore.FieldValue.serverTimestamp();
-    await db.collection('user_profiles').doc(createdUser.uid).set(
+    const bootstrapBatch = db.batch();
+
+    const profileRef = db.collection('user_profiles').doc(createdUser.uid);
+    const landingRef = db.collection('landing_pages').doc(tenantSlug);
+    const tenantRef = db.collection('tenants').doc(tenantSlug);
+    const scheduleRef = db.collection('tenants').doc(tenantSlug).collection('settings').doc('schedule');
+
+    bootstrapBatch.set(
+      profileRef,
       {
+        id: createdUser.uid,
         uid: createdUser.uid,
         email,
         name: fullName,
@@ -177,24 +201,57 @@ export async function completeCheckoutOnboardingAction(input: CompleteCheckoutOn
         hasPassword: true,
         googleConnected: false,
         emailVerified: false,
+        schemaVersion: 1,
+        bootstrapCompletedAt: now,
         createdAt: now,
         updatedAt: now,
       },
       { merge: true }
     );
 
-    await db.collection('landing_pages').doc(tenantSlug).set(
+    bootstrapBatch.set(
+      landingRef,
       {
         slug: tenantSlug,
-        branchName: fullName,
+        userId: createdUser.uid,
         ownerUid: createdUser.uid,
+        branchName: fullName,
         headline: `Welcome to ${fullName}`,
+        isPublic: false,
         isPublished: false,
+        contactPhone: phoneNumber || null,
+        schemaVersion: 1,
         createdAt: now,
         updatedAt: now,
       },
       { merge: true }
     );
+
+    bootstrapBatch.set(
+      tenantRef,
+      {
+        slug: tenantSlug,
+        ownerUid: createdUser.uid,
+        status: 'active',
+        schemaVersion: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    bootstrapBatch.set(
+      scheduleRef,
+      {
+        ...getDefaultWeeklySchedule(),
+        schemaVersion: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    await bootstrapBatch.commit();
 
     let emailWarning: string | null = null;
     try {
