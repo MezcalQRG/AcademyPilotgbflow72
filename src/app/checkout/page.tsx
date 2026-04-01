@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useSearchParams, useRouter, useParams } from "next/navigation";
@@ -9,11 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { PaymentMethodForm } from "@/components/leads/payment-method-form";
 import { StripeEmbeddedCheckout } from "@/components/checkout/stripe-embedded-checkout";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, Zap, CreditCard, ArrowLeft, CheckCircle2, X, ChevronDown, Mail } from "lucide-react";
+import { Loader2, ShieldCheck, Zap, CreditCard, ArrowLeft, CheckCircle2, X } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { getAcademyPhotos } from "@/app/actions";
 import { BackgroundPhotoRotation } from "@/components/landing/background-photo-rotation";
-import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +34,6 @@ function CheckoutContent() {
   const [isAgreementOpen, setIsAgreementOpen] = useState(false);
   const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
-  const [agreementScrollRef, setAgreementScrollRef] = useState<HTMLDivElement | null>(null);
   const [postCheckoutRedirectPath, setPostCheckoutRedirectPath] = useState<string | null>(null);
   const [checkoutStatusHandled, setCheckoutStatusHandled] = useState(false);
   const [membershipFullName, setMembershipFullName] = useState("");
@@ -44,7 +42,7 @@ function CheckoutContent() {
   const [isInitializingEmbedded, setIsInitializingEmbedded] = useState(false);
 
   const planTitle = searchParams.get("plan") || "Strategic Plan";
-  const planDetails = searchParams.get("details") || "Mission initialization details pending.";
+  const planDetails = searchParams.get("details") || "Checkout details pending.";
   const itemType = searchParams.get("itemType") || "membership";
   const assetId = searchParams.get("assetId");
   const checkoutStatus = searchParams.get("checkoutStatus");
@@ -76,7 +74,7 @@ function CheckoutContent() {
       setCheckoutStatusHandled(true);
       toast({
         variant: 'destructive',
-        title: 'CHECKOUT CANCELLED',
+        title: 'Checkout Cancelled',
         description: 'Payment was cancelled. You can retry when ready.',
       });
       return;
@@ -116,7 +114,7 @@ function CheckoutContent() {
           setIsProcessing(false);
           toast({
             variant: 'destructive',
-            title: 'PROVISIONING FAILED',
+            title: 'Provisioning Failed',
             description: result?.error || 'Payment succeeded but account provisioning failed.',
           });
           return;
@@ -125,8 +123,8 @@ function CheckoutContent() {
         if (attempts >= maxAttempts) {
           setIsProcessing(false);
           toast({
-            variant: 'destructive',
-            title: 'PROVISIONING DELAYED',
+            variant: 'default',
+            title: 'Provisioning Delayed',
             description: 'We are still confirming your payment. Please refresh this page shortly.',
           });
           return;
@@ -138,7 +136,7 @@ function CheckoutContent() {
           setIsProcessing(false);
           toast({
             variant: 'destructive',
-            title: 'CHECKOUT STATUS ERROR',
+            title: 'Checkout Status Error',
             description: 'Could not confirm payment status. Please refresh and try again.',
           });
           return;
@@ -155,7 +153,7 @@ function CheckoutContent() {
     };
   }, [itemType, checkoutStatus, sessionId, checkoutStatusHandled, toast]);
 
-  // Tactical Redirection Countdown logic
+  // Redirection Countdown logic
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isSuccess && countdown > 0) {
@@ -163,7 +161,7 @@ function CheckoutContent() {
             setCountdown((prev) => prev - 1);
         }, 1000);
     } else if (isSuccess && countdown === 0) {
-        // Redirection protocol: route to Account Security onboarding tab.
+        // Redirection route
         const dashboardUrl = postCheckoutRedirectPath || (academySlug
           ? `/${academySlug}/dashboard/settings?tab=account&onboarding=1`
           : "/");
@@ -173,7 +171,6 @@ function CheckoutContent() {
     return () => clearInterval(timer);
   }, [isSuccess, countdown, router, academySlug, postCheckoutRedirectPath]);
 
-  // Tactical logic to find the correct asset for display
   const tacticalAsset = assetId 
     ? PlaceHolderImages.find(img => img.id === assetId)
     : PlaceHolderImages.find(img => img.id === 'hero-bjj');
@@ -182,8 +179,8 @@ function CheckoutContent() {
     if (itemType === 'membership') {
       toast({
         variant: 'destructive',
-        title: 'COUPON DISABLED',
-        description: 'Membership checkout is handled directly by Stripe sandbox.',
+        title: 'Coupon Disabled',
+        description: 'Membership checkout is handled directly by Stripe.',
       });
       return;
     }
@@ -191,20 +188,19 @@ function CheckoutContent() {
     if (coupon === "BYPASS-123") {
       setIsCouponApplied(true);
       toast({
-        title: "PROTOCOL AUTHORIZED",
-        description: "Tactical code BYPASS-123 validated. Unit cost recalibrated to $0.00.",
+        title: "Coupon Applied",
+        description: "Special code BYPASS-123 applied. Total price updated.",
       });
 
       // TRIGGER SUCCESS SEQUENCE AFTER ANIMATION
-      // Wait 1 second for the strikethrough and price shift to be seen by the operator
       setTimeout(() => {
         setIsSuccess(true);
       }, 1000);
     } else {
       toast({
         variant: "destructive",
-        title: "INVALID CREDENTIAL",
-        description: "Coupon code not recognized by the central matrix.",
+        title: "Invalid Code",
+        description: "This coupon code is not recognized.",
       });
     }
   };
@@ -223,8 +219,8 @@ function CheckoutContent() {
       setIsAgreementOpen(true);
       toast({
         variant: "destructive",
-        title: "AGREEMENT REQUIRED",
-        description: "You must read and accept the terms agreement to proceed.",
+        title: "Agreement Required",
+        description: "Please read and accept the terms agreement to proceed.",
       });
       return;
     }
@@ -232,8 +228,8 @@ function CheckoutContent() {
     if (!tenantEmail.trim()) {
       toast({
         variant: "destructive",
-        title: "EMAIL REQUIRED",
-        description: "Enter your academy email on the left side.",
+        title: "Email Required",
+        description: "Please enter your academy email.",
       });
       return;
     }
@@ -241,8 +237,8 @@ function CheckoutContent() {
     if (!academySlug.trim()) {
       toast({
         variant: "destructive",
-        title: "ACADEMY SLUG REQUIRED",
-        description: "Define your academy slug before completing checkout.",
+        title: "Academy Slug Required",
+        description: "Please enter your academy slug.",
       });
       return;
     }
@@ -250,8 +246,8 @@ function CheckoutContent() {
     if (!membershipFullName.trim()) {
       toast({
         variant: "destructive",
-        title: "FULL NAME REQUIRED",
-        description: "Enter your legal full name before opening Stripe checkout.",
+        title: "Full Name Required",
+        description: "Please enter your legal full name.",
       });
       return;
     }
@@ -259,8 +255,8 @@ function CheckoutContent() {
     if (!membershipPhoneNumber.trim()) {
       toast({
         variant: "destructive",
-        title: "PHONE REQUIRED",
-        description: "Enter your phone number before opening Stripe checkout.",
+        title: "Phone Required",
+        description: "Please enter your phone number.",
       });
       return;
     }
@@ -286,14 +282,14 @@ function CheckoutContent() {
       const result = await response.json();
 
       if (!response.ok || result?.error || !result?.clientSecret) {
-        throw new Error(result?.error || 'Could not initialize embedded Stripe checkout.');
+        throw new Error(result?.error || 'Could not initialize Stripe checkout.');
       }
 
       setEmbeddedClientSecret(result.clientSecret);
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "CHECKOUT FAILED",
+        title: "Checkout Failed",
         description: error?.message || "Could not initialize academy checkout.",
       });
     } finally {
@@ -307,16 +303,16 @@ function CheckoutContent() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1200));
       toast({
-        title: "ENROLLMENT SECURED",
-        description: `OSS! Tactical link established for ${planTitle.toUpperCase()}. Welcome to the team.`,
+        title: "Enrollment Complete",
+        description: `Successfully enrolled in ${planTitle}. Welcome to the academy.`,
       });
 
       setIsSuccess(true);
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "CHECKOUT FAILED",
-        description: error?.message || "Could not complete academy onboarding.",
+        title: "Checkout Failed",
+        description: error?.message || "Could not complete onboarding.",
       });
     } finally {
       setIsProcessing(false);
@@ -324,170 +320,167 @@ function CheckoutContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row">
-      {/* Left Sector: Intelligence Briefing */}
-      <div className="w-full md:w-1/2 bg-secondary p-6 md:p-12 text-white flex flex-col justify-between relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-border">
+    <div className="min-h-screen bg-slate-50 dark:bg-black flex flex-col md:flex-row font-sans text-slate-900 dark:text-white">
+      {/* Left Sector: Briefing */}
+      <div className="w-full md:w-5/12 bg-white dark:bg-black/50 p-6 md:p-12 flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-slate-200 dark:border-border">
         <div className="absolute inset-0 z-0">
           <BackgroundPhotoRotation photoUrls={photos} />
-          <div className="absolute inset-0 bg-secondary/30" />
+          {/* Light glassmorphic overlay for image readability */}
+          <div className="absolute inset-0 bg-white/85 backdrop-blur-md" />
         </div>
 
         <div className="relative z-10 space-y-8 md:space-y-12">
-          <Link href={itemType === 'uniform' ? '/store' : '/'} className="inline-flex items-center gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-colors group">
+          <Link href={itemType === 'uniform' ? '/store' : '/'} className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-slate-500 hover:text-primary transition-colors group">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            ABORT MISSION TO BASE
+            RETURN TO ACADEMY
           </Link>
 
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
+          <div className="space-y-8">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 flex items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
                   <img 
                     src="https://graciebarra.com/wp-content/uploads/2025/07/logos-barra-shield.svg" 
                     alt="Logo" 
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div className="flex flex-col leading-none">
-                  <span className="font-headline text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-primary">GB AI</span>
-                  <span className="font-headline text-[8px] md:text-[10px] font-bold tracking-[0.2em] uppercase opacity-60">Deployment Terminal</span>
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none mb-1">GB AI</span>
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-slate-500 dark:text-slate-400">Checkout Portal</span>
                 </div>
               </div>
+              <ThemeToggle />
             </div>
             
             <div className="relative">
-              <div className="space-y-4 border-l-8 border-primary pl-6 md:pl-8 relative">
-                <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">
-                  {itemType === 'uniform' ? 'Armory Acquisition Protocol' : 'Operational Protocol Selection'}
+              <div className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary">
+                  {itemType === 'uniform' ? 'Uniform Order' : 'Plan Selection'}
                 </p>
-                <h1 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter leading-tight">{planTitle}</h1>
+                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+                  {planTitle}
+                </h1>
                 
-                <div className="inline-block bg-primary text-white px-4 py-1 text-xl md:text-2xl font-black italic shadow-lg relative overflow-hidden min-w-[120px]">
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={displayPrice}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -20, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="block"
-                    >
-                      ${displayPrice}.00
-                    </motion.span>
-                  </AnimatePresence>
-                  {isCouponApplied && (
-                    <motion.div 
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{ duration: 0.5, delay: 0.2 }}
-                      className="absolute top-1/2 left-0 w-full h-1 bg-white -rotate-12 origin-left z-10"
-                    />
-                  )}
+                <div className="inline-flex items-center gap-2 mt-2">
+                  <span className="text-3xl font-bold text-slate-900 dark:text-white">
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={displayPrice}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -10, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="inline-block"
+                      >
+                        ${displayPrice}.00
+                      </motion.span>
+                    </AnimatePresence>
+                  </span>
+                  <span className="text-sm font-medium text-slate-500 tracking-wide uppercase">USD / Month</span>
                 </div>
 
-                <div className="mt-6 max-w-xs space-y-3 bg-white/10 p-4 border-2 border-white/20 backdrop-blur-sm">
-                  <Label htmlFor="coupon" className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white">
-                    <Zap className="h-3 w-3 fill-current text-primary" /> Tactical Coupon
+                <div className="pt-6">
+                  <p className="text-sm font-medium leading-relaxed text-slate-600 max-w-md">
+                    {planDetails}
+                  </p>
+                </div>
+
+                <div className="mt-8 max-w-sm space-y-4 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm shadow-slate-100">
+                  <Label htmlFor="coupon" className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    Promo Code
                   </Label>
                   <div className="flex gap-2">
                     <Input 
                       id="coupon" 
-                      placeholder="ENTER CODE..." 
+                      placeholder="Enter code" 
                       value={coupon} 
                       onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                       disabled={isCouponApplied}
-                      className="rounded-none border-2 border-white/30 h-10 font-black uppercase italic text-xs bg-black/20 text-white focus-visible:ring-primary placeholder:text-white/30" 
+                      className="rounded-xl h-12 text-sm bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-primary font-medium placeholder:text-slate-400" 
                     />
                     <Button 
                       onClick={handleRedeem}
                       disabled={isCouponApplied || !coupon}
-                      className="rounded-none bg-primary hover:bg-primary/90 text-white font-black uppercase italic text-[10px] h-10 px-4 shrink-0"
+                      className="rounded-xl h-12 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all shrink-0"
                     >
-                      REDEEM
+                      Apply
                     </Button>
                   </div>
                   {isCouponApplied ? (
-                    <p className="text-[8px] font-bold uppercase tracking-tighter text-green-400 italic flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" /> PROTOCOL BYPASS-123 ACTIVE
+                    <p className="text-xs font-semibold text-green-600 flex items-center gap-1.5 mt-2">
+                      <CheckCircle2 className="h-4 w-4" /> Code BYPASS-123 Applied
                     </p>
                   ) : (
-                    <p className="text-[8px] font-bold uppercase tracking-tighter text-white/60 italic">
-                      Enter code to recalibrate mission costs.
+                    <p className="text-xs font-medium text-slate-500 mt-2">
+                      Enter a promotional code to apply a discount.
                     </p>
                   )}
                 </div>
 
                 {/* Email + Slug fields for membership */}
                 {itemType === 'membership' && (
-                  <div className="mt-4 max-w-xs space-y-4">
-                    <div className="space-y-2 bg-white/10 p-4 border-2 border-white/20 backdrop-blur-sm">
-                      <Label htmlFor="tenant-email" className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white">
-                        <Mail className="h-3 w-3 text-primary" /> Academy Email <span className="text-primary">*</span>
-                      </Label>
-                      <Input
-                        id="tenant-email"
-                        type="email"
-                        required
-                        placeholder="YOUR@ACADEMY.COM"
-                        value={tenantEmail}
-                        onChange={(e) => setTenantEmail(e.target.value)}
-                        className="rounded-none border-2 border-white/30 h-10 font-bold text-xs bg-black/20 text-white focus-visible:ring-primary placeholder:text-white/30"
-                      />
-                      <p className="text-[8px] font-bold uppercase tracking-tighter text-white/60 italic">
-                        We&apos;ll send your account credentials here.
-                      </p>
-                    </div>
+                  <div className="mt-4 max-w-sm space-y-4">
+                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm shadow-slate-100 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="tenant-email" className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-1.5">
+                          Academy Email <span className="text-primary">*</span>
+                        </Label>
+                        <Input
+                          id="tenant-email"
+                          type="email"
+                          required
+                          placeholder="yourname@academy.com"
+                          value={tenantEmail}
+                          onChange={(e) => setTenantEmail(e.target.value)}
+                          className="rounded-xl h-12 text-sm bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-primary font-medium placeholder:text-slate-400"
+                        />
+                        <p className="text-[11px] font-medium text-slate-500">
+                          We&apos;ll send your welcome packet here.
+                        </p>
+                      </div>
 
-                    <div className="space-y-2 bg-white/10 p-4 border-2 border-white/20 backdrop-blur-sm">
-                      <Label htmlFor="left-academy-slug" className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white">
-                        <Zap className="h-3 w-3 fill-current text-primary" /> Academy Slug <span className="text-primary">*</span>
-                      </Label>
-                      <Input
-                        id="left-academy-slug"
-                        placeholder="E.G., WESTCOVINA"
-                        value={academySlug}
-                        onChange={(e) => setAcademySlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                        required
-                        className="rounded-none border-2 border-white/30 h-10 font-black uppercase italic text-xs bg-black/20 text-white focus-visible:ring-primary placeholder:text-white/30"
-                      />
-                      <p className="text-[8px] font-bold uppercase tracking-tighter text-white/60 italic">
-                        Dashboard URL: /{academySlug || 'your-slug'}/dashboard
-                      </p>
+                      <div className="space-y-2 pt-2 border-t border-slate-100">
+                        <Label htmlFor="left-academy-slug" className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-1.5">
+                          Academy Slug <span className="text-primary">*</span>
+                        </Label>
+                        <Input
+                          id="left-academy-slug"
+                          placeholder="e.g. west-covina"
+                          value={academySlug}
+                          onChange={(e) => setAcademySlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                          required
+                          className="rounded-xl h-12 text-sm bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-primary font-medium placeholder:text-slate-400"
+                        />
+                        <p className="text-[11px] font-medium text-slate-500">
+                          Your URL: /{academySlug || 'your-slug'}/dashboard
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
               {itemType === 'uniform' && tacticalAsset && (
-                <div className="mt-8 md:mt-12 border-l-8 border-primary relative h-72 md:h-[450px] bg-black/20 border-2 border-white/5 flex items-center justify-center overflow-hidden group shadow-2xl">
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="h-full w-full bg-[repeating-linear-gradient(90deg,transparent,transparent_20px,rgba(255,255,255,0.05)_20px,rgba(255,255,255,0.05)_21px)]" />
-                    <div className="h-full w-full absolute top-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.05)_2px,rgba(255,255,255,0.05)_4px)]" />
-                  </div>
+                <div className="mt-8 md:mt-12 w-full max-w-sm relative h-64 md:h-80 bg-slate-50 rounded-3xl border border-slate-200 flex items-center justify-center overflow-hidden group shadow-inner">
                   <div className="relative w-full h-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-1000">
                     <Image 
                       src={tacticalAsset.imageUrl} 
                       alt="Unit Preview" 
                       fill 
-                      className="object-contain p-4 md:p-8 scale-125 drop-shadow-[0_0_30px_rgba(225,29,72,0.5)] transition-transform duration-1000 group-hover:scale-[1.35]"
+                      className="object-contain p-6 md:p-8 scale-110 drop-shadow-xl transition-transform duration-700 group-hover:scale-125"
                     />
                   </div>
                 </div>
               )}
             </div>
-
-            <div className="max-w-md p-6 md:p-8 bg-white/5 border-2 border-white/10 rounded-none italic shadow-2xl backdrop-blur-sm">
-              <p className="text-base md:text-lg font-bold leading-relaxed opacity-90 text-white">
-                {planDetails}
-              </p>
-            </div>
           </div>
         </div>
 
-        <div className="relative z-10 mt-8 md:mt-12 space-y-4">
-          <div className="flex items-center gap-4 text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-60">
-            <ShieldCheck className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-            <span>End-to-End Encrypted Tactical Handshake Active</span>
+        <div className="relative z-10 mt-8 md:mt-12">
+          <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-slate-500 bg-slate-100/50 w-fit px-4 py-2 rounded-full backdrop-blur-sm border border-slate-200">
+            <ShieldCheck className="h-4 w-4 text-green-600" />
+            <span>Encrypted SSL Secure Connection</span>
           </div>
         </div>
       </div>
@@ -507,61 +500,63 @@ function CheckoutContent() {
         hasScrolledToBottom={hasScrolledToBottom}
       />
 
-      {/* Right Sector: Financial Matrix Entry */}
-      <div className="w-full md:w-1/2 p-6 md:p-12 bg-card flex flex-col justify-center relative overflow-hidden">
-        <Zap className="absolute top-0 right-0 h-48 w-48 md:h-64 md:w-64 text-primary opacity-5 rotate-12 -translate-y-16 translate-x-16" />
-        
-        <div className="max-w-md w-full mx-auto relative z-10">
+      {/* Right Sector: Checkout Forms */}
+      <div className="w-full md:w-7/12 p-6 md:p-12 lg:p-20 bg-slate-50 dark:bg-black/80 flex flex-col justify-center relative">
+        <div className="max-w-xl w-full mx-auto relative z-10">
           {isSuccess ? (
-            <div className="flex flex-col items-center justify-center text-center space-y-10 animate-in fade-in zoom-in-95 duration-700">
-              <div className="relative">
-                <div className="h-32 w-32 md:h-40 md:w-40 border-8 border-green-500 rounded-none rotate-45 flex items-center justify-center bg-green-500/5 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
-                  <CheckCircle2 className="h-16 w-16 md:h-20 md:w-20 text-green-500 -rotate-45" />
+            <div className="flex flex-col items-center justify-center text-center space-y-8 bg-white dark:bg-card p-12 rounded-3xl shadow-xl border border-slate-100 dark:border-border animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="relative w-28 h-28">
+                <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-50" />
+                <div className="relative h-28 w-28 bg-green-100 rounded-full flex items-center justify-center shadow-inner">
+                  <CheckCircle2 className="h-14 w-14 text-green-600" />
                 </div>
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-2 font-black text-3xl shadow-xl italic rotate-3">
-                  {countdown}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-5 py-1.5 rounded-full font-bold text-lg shadow-lg">
+                  {countdown}s
                 </div>
               </div>
-              <div className="space-y-4">
-                <h4 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-green-500 drop-shadow-sm">MISSION SUCCESS</h4>
-                <p className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-foreground animate-pulse">
-                  CONFIRMA TU EMAIL PARA ACCEDER A TU CUENTA
+              <div className="space-y-3">
+                <h4 className="text-3xl font-extrabold tracking-tight text-slate-900">Success!</h4>
+                <p className="text-sm font-semibold text-slate-600">
+                  Please check your email to access your account.
                 </p>
-                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
-                  REDIRECTING TO ACCOUNT SECURITY SETTINGS...
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 pt-4">
+                  Redirecting to settings...
                 </p>
               </div>
             </div>
           ) : isProcessing || isInitializingEmbedded ? (
-            <div className="flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in-95 duration-500">
-              <div className="relative">
-                <div className="h-24 w-24 md:h-32 md:w-32 border-8 border-primary/20 border-t-primary rounded-none rotate-45 animate-spin" />
-                <Zap className="h-10 w-10 md:h-12 md:w-12 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <div className="flex flex-col items-center justify-center text-center space-y-8 bg-white p-12 rounded-3xl shadow-xl border border-slate-100 animate-in fade-in zoom-in-95 duration-500">
+              <div className="relative h-24 w-24">
+                <div className="absolute inset-0 border-4 border-slate-100 rounded-full" />
+                <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <ShieldCheck className="h-8 w-8 text-slate-400" />
+                </div>
               </div>
-              <div className="space-y-3">
-                <h4 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter">Syncing Matrix...</h4>
-                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">Authorizing Financial Link with Central Command</p>
+              <div className="space-y-2">
+                <h4 className="text-2xl font-bold tracking-tight text-slate-900">Processing...</h4>
+                <p className="text-sm font-medium text-slate-500">Securely connecting to the payment network.</p>
               </div>
             </div>
           ) : (
-            <div className="space-y-8 md:space-y-10">
-              <div className="flex items-center justify-between border-b-4 border-border pb-6">
+            <div className="space-y-8">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 md:p-3 bg-primary/10 border-2 border-primary rotate-45">
-                    <CreditCard className="h-5 w-5 md:h-6 md:w-6 text-primary -rotate-45" />
+                  <div className="p-2.5 bg-slate-100 rounded-xl">
+                    <CreditCard className="h-6 w-6 text-slate-700" />
                   </div>
-                  <h4 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter">Financial Matrix</h4>
+                  <h4 className="text-2xl font-extrabold tracking-tight text-slate-900">Payment Details</h4>
                 </div>
-                <Badge className="rounded-none bg-secondary/10 text-foreground border-2 border-border px-3 md:px-4 py-1 font-black uppercase italic text-[8px] md:text-[10px] tracking-widest">
-                  SECURE LINK
+                <Badge className="bg-slate-100 hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 font-bold uppercase text-[10px] tracking-widest rounded-full">
+                  Secure Checkout
                 </Badge>
               </div>
               
               <div className="space-y-6">
                 {/* Agreement Acceptance */}
                 {itemType === 'membership' && (
-                  <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl">
-                    <div className="flex items-start gap-3">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm transition-shadow hover:shadow-md">
+                    <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
                         id="agreement"
@@ -574,25 +569,25 @@ function CheckoutContent() {
                           } else {
                             setIsAgreementOpen(true);
                             toast({
-                              title: "PLEASE READ AGREEMENT",
-                              description: "Scroll to the bottom to fully read the agreement.",
+                              title: "Please Review Terms",
+                              description: "You must read to the bottom before accepting.",
                             });
                           }
                         }}
                         disabled={!hasScrolledToBottom}
-                        className="mt-1 w-5 h-5 cursor-pointer disabled:opacity-50"
+                        className="w-5 h-5 cursor-pointer accent-primary rounded border-slate-300 disabled:opacity-50"
                       />
-                      <Label htmlFor="agreement" className="text-sm font-bold uppercase tracking-widest text-foreground cursor-pointer flex-1">
-                        I have read and accept the Terms & Conditions
+                      <Label htmlFor="agreement" className="text-sm font-bold text-slate-700 cursor-pointer flex-1 select-none">
+                        I have read and accept the
                         <button
                           type="button"
                           onClick={() => {
                             setIsAgreementOpen(true);
                             setHasScrolledToBottom(false);
                           }}
-                          className="text-primary hover:underline ml-2 font-black"
+                          className="text-primary hover:text-primary/80 transition-colors hover:underline ml-1 font-bold"
                         >
-                          (Read Agreement)
+                          Terms & Conditions
                         </button>
                       </Label>
                     </div>
@@ -600,68 +595,74 @@ function CheckoutContent() {
                 )}
 
                 {itemType === 'membership' ? (
-                  <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl space-y-4">
+                  <div className="bg-white dark:bg-card rounded-3xl border border-slate-200 dark:border-border p-6 md:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-6">
                     {!embeddedClientSecret ? (
                       <>
-                        <div className="space-y-2">
-                          <Label htmlFor="membership-name" className="text-[10px] font-black uppercase tracking-widest">
-                            Legal Full Name
-                          </Label>
-                          <Input
-                            id="membership-name"
-                            placeholder="JANE DOE"
-                            value={membershipFullName}
-                            onChange={(e) => setMembershipFullName(e.target.value)}
-                            className="rounded-none border-2 font-bold uppercase h-10 text-xs focus-visible:ring-primary"
-                          />
+                        <div className="space-y-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="membership-name" className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+                              Legal Full Name <span className="text-primary">*</span>
+                            </Label>
+                            <Input
+                              id="membership-name"
+                              placeholder="Jane Doe"
+                              value={membershipFullName}
+                              onChange={(e) => setMembershipFullName(e.target.value)}
+                              className="rounded-xl h-12 text-sm bg-slate-50 border-slate-200 focus-visible:ring-primary font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="membership-phone" className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+                              Phone Number <span className="text-primary">*</span>
+                            </Label>
+                            <Input
+                              id="membership-phone"
+                              placeholder="+1 (555) 000-0000"
+                              value={membershipPhoneNumber}
+                              onChange={(e) => setMembershipPhoneNumber(e.target.value)}
+                              className="rounded-xl h-12 text-sm bg-slate-50 border-slate-200 focus-visible:ring-primary font-medium"
+                            />
+                          </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="membership-phone" className="text-[10px] font-black uppercase tracking-widest">
-                            Phone (E.164)
-                          </Label>
-                          <Input
-                            id="membership-phone"
-                            placeholder="+14155552671"
-                            value={membershipPhoneNumber}
-                            onChange={(e) => setMembershipPhoneNumber(e.target.value)}
-                            className="rounded-none border-2 font-bold h-10 text-xs focus-visible:ring-primary"
-                          />
+                        <div className="pt-2">
+                          <Button
+                            type="button"
+                            onClick={handleMembershipEmbeddedStart}
+                            className="w-full rounded-xl font-bold bg-primary hover:bg-primary/90 text-white text-[15px] h-14 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:-translate-y-0.5"
+                          >
+                            Continue to Payment
+                          </Button>
                         </div>
-
-                        <Button
-                          type="button"
-                          onClick={handleMembershipEmbeddedStart}
-                          className="w-full rounded-none font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white text-[10px] h-12 shadow-lg"
-                        >
-                          Launch Embedded Stripe Gateway
-                        </Button>
                       </>
                     ) : (
-                      <div className="space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                          Stripe Gateway Embedded: Complete your recurring membership payment below.
-                        </p>
+                      <div className="space-y-4 animate-in fade-in duration-500">
+                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+                          <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                            Complete your recurring membership
+                          </p>
+                        </div>
                         <StripeEmbeddedCheckout clientSecret={embeddedClientSecret} />
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="bg-background border-2 border-border p-6 md:p-8 shadow-xl">
+                  <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-xl shadow-slate-200/50">
                     <PaymentMethodForm
                       onSubmit={handlePaymentSubmit}
                       onCancel={() => router.push('/store')}
                       hideEmail={false}
                       collectCardDetails={true}
-                      submitLabel={'Secure Link'}
+                      submitLabel={'Complete Purchase'}
                     />
                   </div>
                 )}
               </div>
 
-              <div className="text-center">
-                <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
-                  Mission Readiness: Your assets will be deployed immediately upon matrix verification.
+              <div className="text-center pt-6">
+                <p className="text-[11px] font-medium text-slate-400">
+                  Payments are secure and encrypted. Need help? Contact support.
                 </p>
               </div>
             </div>
@@ -675,7 +676,7 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     }>
@@ -701,137 +702,125 @@ function AgreementModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-background border-4 border-primary max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className="bg-primary text-white p-6 md:p-8 border-b-4 border-primary flex items-center justify-between">
-          <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter">Terms & Conditions</h2>
+        <div className="bg-white text-slate-900 p-6 md:p-8 border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
+          <h2 className="text-2xl font-extrabold tracking-tight">Terms & Conditions</h2>
           <button
             onClick={onClose}
-            className="text-white hover:bg-primary/80 p-2 transition-colors"
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Scrollable Content */}
         <div
           onScroll={onScroll}
-          className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 border-b-4 border-border"
+          className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50 relative"
         >
-          <div className="space-y-6 text-sm leading-relaxed font-medium text-foreground/90">
+          <div className="space-y-8 text-sm leading-relaxed font-medium text-slate-600 max-w-prose mx-auto">
             <section>
-              <h3 className="font-black uppercase text-lg mb-3">1. ACADEMY OWNER AGREEMENT</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-2">1. Academy Owner Agreement</h3>
               <p>
                 By proceeding with this payment of $150 per month, you acknowledge that you are the authorized representative of your academy and take full responsibility for account management, billing, and compliance with all platform policies.
               </p>
             </section>
 
             <section>
-              <h3 className="font-black uppercase text-lg mb-3">2. PAYMENT TERMS</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-2">2. Payment Terms</h3>
+              <ul className="list-disc pl-5 space-y-1 text-slate-600 marker:text-slate-300">
+                <li>Monthly subscription: $150 USD (auto-renews monthly)</li>
+                <li>Payment is charged on the same day each month</li>
+                <li>Cancellation can be done anytime from dashboard settings</li>
+                <li>No refunds for partial months</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-bold text-slate-900 text-base mb-2">3. Data & Privacy</h3>
               <p>
-                • Monthly subscription: $150 USD (auto-renews monthly)
-              </p>
-              <p>
-                • Payment is charged on the same day each month
-              </p>
-              <p>
-                • Cancellation can be done anytime from dashboard settings
-              </p>
-              <p>
-                • No refunds for partial months
+                Your academy data is stored securely in our platform infrastructure. We comply with GDPR, CCPA, and international data protection standards. Student personal information is encrypted and never shared with third parties without explicit consent.
               </p>
             </section>
 
             <section>
-              <h3 className="font-black uppercase text-lg mb-3">3. DATA & PRIVACY</h3>
-              <p>
-                Your academy data is stored securely in our Firebase infrastructure. We comply with GDPR, CCPA, and international data protection standards. Student personal information is encrypted and never shared with third parties without explicit consent.
-              </p>
+              <h3 className="font-bold text-slate-900 text-base mb-2">4. Service Features</h3>
+              <p className="mb-2">Your subscription includes:</p>
+              <ul className="list-disc pl-5 space-y-1 text-slate-600 marker:text-slate-300">
+                <li>Multi-tenant dashboard with unlimited users per academy</li>
+                <li>Lead management and tracking system</li>
+                <li>AWS SES email integration for student communications</li>
+                <li>Student class scheduling and enrollment management</li>
+                <li>Secure database for academy data</li>
+                <li>Advanced authentication and API security</li>
+              </ul>
             </section>
 
             <section>
-              <h3 className="font-black uppercase text-lg mb-3">4. SERVICE FEATURES</h3>
-              <p>
-                Your subscription includes:
-              </p>
-              <p>
-                • Multi-tenant dashboard with unlimited users per academy
-              </p>
-              <p>
-                • Lead management and tracking system
-              </p>
-              <p>
-                • AWS SES email integration for student communications
-              </p>
-              <p>
-                • Student class scheduling and enrollment management
-              </p>
-              <p>
-                • Firestore database for academy data
-              </p>
-              <p>
-                • JWT-based authentication and security
-              </p>
-            </section>
-
-            <section>
-              <h3 className="font-black uppercase text-lg mb-3">5. TERMINATION</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-2">5. Termination</h3>
               <p>
                 We reserve the right to terminate accounts that violate our terms. Upon termination, your data will be deleted after 30 days unless you request an export for backup purposes.
               </p>
             </section>
 
             <section>
-              <h3 className="font-black uppercase text-lg mb-3">6. LIABILITY</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-2">6. Liability</h3>
               <p>
                 We are not liable for data loss, service interruptions, or third-party integrations. Your use of the platform is at your own risk. We maintain industry-standard security, but cannot guarantee 100% uptime.
               </p>
             </section>
 
             <section>
-              <h3 className="font-black uppercase text-lg mb-3">7. UPDATES TO TERMS</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-2">7. Updates to Terms</h3>
               <p>
                 We may update these terms at any time. Material changes will be notified via email. Continued use of the platform constitutes acceptance of new terms.
               </p>
             </section>
 
-            <div className="pt-4 border-t-2 border-border">
-              <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground italic">
-                ⬇ SCROLL TO BOTTOM AND ACCEPT TO CONTINUE
+            <div className="pt-8 text-center pb-4">
+              <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+                End of Agreement
               </p>
             </div>
           </div>
         </div>
 
         {/* Footer with Acceptance */}
-        <div className="bg-background border-t-4 border-border p-6 md:p-8 space-y-4">
-          {!hasScrolledToBottom ? (
-            <div className="flex items-center gap-2 text-primary font-black uppercase text-sm animate-pulse">
-              <ChevronDown className="h-5 w-5 animate-bounce" />
-              Scroll down to accept
+        <div className="bg-white border-t border-slate-100 p-6 px-8 rounded-b-3xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {!hasScrolledToBottom ? (
+              <div className="flex items-center gap-2 text-slate-500 font-bold text-sm">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-300 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-slate-400"></span>
+                </span>
+                Scroll down to accept
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-green-600 font-bold text-sm">
+                <CheckCircle2 className="h-5 w-5" />
+                Agreement ready to accept
+              </div>
+            )}
+            
+            <div className="flex gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+              <Button
+                onClick={onClose}
+                variant="outline"
+                className="w-full sm:w-auto rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-50 h-12 px-6"
+              >
+                Decline
+              </Button>
+              <Button
+                onClick={onAccept}
+                disabled={!hasScrolledToBottom}
+                className="w-full sm:w-auto rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 px-8 shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Accept & Continue
+              </Button>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 text-green-500 font-black uppercase text-sm">
-              <CheckCircle2 className="h-5 w-5" />
-              Agreement ready to accept
-            </div>
-          )}
-          <div className="flex gap-3 flex-col-reverse sm:flex-row">
-            <Button
-              onClick={onClose}
-              variant="outline"
-              className="rounded-none border-2 font-black uppercase italic h-12"
-            >
-              Decline
-            </Button>
-            <Button
-              onClick={onAccept}
-              disabled={!hasScrolledToBottom}
-              className="rounded-none bg-green-600 hover:bg-green-700 text-white font-black uppercase italic h-12 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Accept & Continue
-            </Button>
           </div>
         </div>
       </div>

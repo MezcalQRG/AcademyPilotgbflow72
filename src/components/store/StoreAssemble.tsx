@@ -12,6 +12,7 @@ import Link from "next/link";
 import Marquee from "@/components/landing/Marquee";
 import { PhotoGrid } from "@/components/photo-grid";
 import { BackgroundPhotoRotation } from "@/components/landing/background-photo-rotation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -192,14 +193,17 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
           </div>
           <div className="flex flex-col">
             <span className="font-headline text-2xl font-black uppercase italic tracking-tighter text-primary leading-none">ARMORY HUB</span>
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/60">Equipping the Global Legacy</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-700 dark:text-white/60">Equipping the Global Legacy</span>
           </div>
         </div>
-        <Button asChild variant="ghost" className="text-white hover:text-primary rounded-none font-black uppercase italic text-xs tracking-widest p-0 h-auto">
-          <Link href="/" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" /> ABORT TO BASE
-          </Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Button asChild variant="ghost" className="text-slate-900 dark:text-white hover:text-primary rounded-none font-black uppercase italic text-xs tracking-widest p-0 h-auto">
+            <Link href="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" /> ABORT TO BASE
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Manifested Tactical Marquees */}
@@ -249,7 +253,7 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
       </div>
 
       {/* Title Scene */}
-      <div ref={titleRef} className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 will-change-transform perspective-element">
+      <div ref={titleRef} className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 will-change-transform perspective-element z-[60]">
         <h1 className="text-center">
           <span className="block text-[10vw] font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-[0_0_50px_rgba(255,255,255,0.2)]">
             GRACIE BARRA
@@ -265,22 +269,22 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
         <div 
           key={item.id}
           ref={el => { itemRefs.current[index] = el; }}
-          className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform perspective-element px-6 z-20"
+          className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform perspective-element px-6 z-[70]"
         >
-          <Card className="max-w-4xl w-full bg-secondary/90 backdrop-blur-2xl border-4 border-border rounded-none shadow-2xl overflow-hidden">
+          <Card className="max-w-4xl w-full bg-slate-50/95 dark:bg-secondary/90 backdrop-blur-2xl border-4 border-slate-300 dark:border-border rounded-none shadow-2xl overflow-hidden">
             <div className="flex flex-col md:flex-row h-full">
               <div className="p-12 flex flex-col justify-center space-y-8 w-full">
                 <div className="space-y-2 border-l-8 border-primary pl-8">
                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic">{item.tag}</p>
-                  <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-none">{item.name}</h3>
+                  <h3 className="text-5xl font-black uppercase italic tracking-tighter text-slate-900 dark:text-white leading-none">{item.name}</h3>
                 </div>
-                <p className="text-lg font-bold text-white/60 uppercase tracking-tight leading-relaxed">
+                <p className="text-lg font-bold text-slate-600 dark:text-white/60 uppercase tracking-tight leading-relaxed">
                   {item.description}
                 </p>
                 <div className="flex items-center justify-between gap-6 pt-4">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">UNIT COST</span>
-                    <span className="text-5xl font-black text-white italic">${item.price}.00</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-muted-foreground uppercase tracking-widest">UNIT COST</span>
+                    <span className="text-5xl font-black text-slate-900 dark:text-white italic">${item.price}.00</span>
                   </div>
                   <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-none font-black uppercase italic h-16 px-10 shadow-xl">
                     <Link href={`/checkout?plan=${encodeURIComponent(item.name)}&price=${item.price}&details=${encodeURIComponent(item.details)}&itemType=uniform&assetId=${item.id}`}>

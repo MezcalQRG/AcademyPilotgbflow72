@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PhotoGrid } from "@/components/photo-grid";
 import { getAcademyPhotos } from "@/app/actions";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function LocatorPage() {
   const photos = await getAcademyPhotos("310 S Glendora Ave West Covina 91790");
@@ -34,11 +35,12 @@ export default async function LocatorPage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <div className="w-12 h-12 bg-primary flex items-center justify-center text-white font-black italic text-xl shadow-xl">GB</div>
         </div>
       </header>
 
-      <main className="flex-grow relative overflow-hidden bg-black">
+      <main className="flex-grow relative overflow-hidden bg-slate-50 dark:bg-black">
         {/* Cinematic Tactical Grid Background - Luminosity Enhanced */}
         <div className="absolute inset-0 z-0">
           <PhotoGrid photoUrls={photos} />
@@ -51,10 +53,10 @@ export default async function LocatorPage() {
               <div className="inline-block bg-primary text-white px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] italic mb-2 shadow-lg">
                 MISSION: FIND YOUR TEAM
               </div>
-              <h1 className="text-6xl md:text-8xl font-headline font-black uppercase italic tracking-tighter leading-none text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
+              <h1 className="text-6xl md:text-8xl font-headline font-black uppercase italic tracking-tighter leading-none text-slate-900 dark:text-white drop-shadow-md dark:drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
                 Locate the Nearest <br /><span className="text-primary">Jiu-Jitsu</span> Academy
               </h1>
-              <p className="text-xl text-white font-black uppercase italic tracking-tight max-w-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] bg-black/20 p-2 inline-block">
+              <p className="text-xl text-slate-800 dark:text-white font-black uppercase italic tracking-tight max-w-xl dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] bg-white/70 dark:bg-black/20 p-2 inline-block">
                 Find a certified Gracie Barra training center in your area. Join our global brotherhood and start your journey with a free trial class today.
               </p>
             </div>

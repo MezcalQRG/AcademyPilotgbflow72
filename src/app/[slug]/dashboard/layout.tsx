@@ -5,6 +5,7 @@ import { LayoutDashboard, Users, Megaphone, Settings, LogOut, Mic, MessageSquare
 import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { GlobalChat } from "@/components/chat/global-chat";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useUser, useFirestore, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -172,6 +173,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </h2>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <div className="w-10 h-10 rounded-none bg-primary flex items-center justify-center text-white font-black italic border-2 border-primary shadow-lg">
                 GB
               </div>

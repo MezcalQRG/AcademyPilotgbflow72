@@ -6,7 +6,7 @@ export default async function StorePage() {
   const photos = await getAcademyPhotos("310 S Glendora Ave West Covina 91790");
 
   return (
-    <main className="min-h-screen bg-black overflow-x-hidden">
+    <main className="min-h-screen bg-slate-50 dark:bg-black overflow-x-hidden transition-colors">
       <StoreAssemble photoUrls={photos} />
     </main>
   );
