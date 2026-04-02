@@ -285,7 +285,7 @@ function ProgramCard({ title, level, description, details, featured = false }: {
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
       <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-slate-500'}`}>{description}</p>
       <div className="mt-auto pt-8">
-        <Button asChild variant={featured ? 'secondary' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-white text-secondary hover:bg-slate-100 border-white' : 'border-slate-900 hover:bg-slate-900 hover:text-white bg-transparent'}`}>
+        <Button asChild className="w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all bg-primary hover:bg-primary/90 text-white border-primary shadow-lg">
           <Link href={`/checkout?plan=${encodeURIComponent(title)}&price=${itemPrice(title)}&details=${encodeURIComponent(details)}`}>
             Access Directive
           </Link>
