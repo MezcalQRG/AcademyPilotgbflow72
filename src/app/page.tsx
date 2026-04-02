@@ -102,19 +102,19 @@ export default async function LandingPage() {
         <Marquee variant="black" />
 
         {/* Programs Section */}
-        <section id="programs" className="py-24 bg-white dark:bg-zinc-950">
+        <section id="programs" className="py-24 bg-white">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="space-y-4 border-l-8 border-primary pl-8">
                 <h2 className="font-headline text-xs font-black uppercase tracking-[0.4em] text-primary">Inversión Táctica</h2>
-                <h3 className="font-headline text-6xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white leading-none">Desglose de Pagos</h3>
+                <h3 className="font-headline text-6xl font-black uppercase tracking-tighter italic text-slate-900 leading-none">Desglose de Pagos</h3>
               </div>
-              <p className="text-slate-600 dark:text-muted-foreground max-w-sm font-bold uppercase text-[10px] tracking-widest leading-loose">
+              <p className="text-slate-600 max-w-sm font-bold uppercase text-[10px] tracking-widest leading-loose">
                 Estructura de inversión para unidades operativas. Entrenamiento certificado, ambiente seguro, comunidad global.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-0 border-4 border-slate-900 dark:border-black">
+            <div className="grid md:grid-cols-3 gap-0 border-4 border-slate-900">
               <ProgramCard 
                 title="Plan Semestral"
                 level="Ciclo: 6 Meses"
@@ -277,14 +277,14 @@ export default async function LandingPage() {
 
 function ProgramCard({ title, level, description, details, featured = false }: { title: string, level: string, description: string, details: string, featured?: boolean }) {
   return (
-    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 dark:border-black ${featured ? 'bg-slate-100 dark:bg-secondary text-slate-900 dark:text-white scale-105 z-10 shadow-2xl relative' : 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
+    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-slate-100 text-slate-900 scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50'}`}>
       <div className={`text-[10px] font-black uppercase tracking-[0.3em] ${featured ? 'text-primary' : 'text-primary'}`}>
         {level}
       </div>
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
-      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-slate-600 dark:text-white/80' : 'text-slate-500 dark:text-muted-foreground'}`}>{description}</p>
+      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-slate-600' : 'text-slate-500'}`}>{description}</p>
       <div className="mt-auto pt-8">
-        <Button asChild variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-slate-900 dark:border-white hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-black bg-transparent'}`}>
+        <Button asChild variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-slate-900 hover:bg-slate-900 hover:text-white bg-transparent'}`}>
           <Link href={`/checkout?plan=${encodeURIComponent(title)}&price=${itemPrice(title)}&details=${encodeURIComponent(details)}`}>
             Access Directive
           </Link>
