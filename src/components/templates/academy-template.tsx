@@ -180,11 +180,11 @@ export function AcademyTemplate({
 
 function ProgramCard({ title, desc, featured = false }: { title: string, desc: string, featured?: boolean }) {
   return (
-    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-slate-100 text-slate-900 scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50'}`}>
+    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-secondary text-white scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50'}`}>
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
-      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-slate-600' : 'text-slate-500'}`}>{desc}</p>
+      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-slate-500'}`}>{desc}</p>
       <div className="mt-auto pt-8">
-        <Button variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-slate-900 hover:bg-slate-900 hover:text-white bg-transparent'}`}>
+        <Button variant={featured ? 'secondary' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-white text-secondary hover:bg-slate-100 border-white' : 'border-slate-900 hover:bg-slate-900 hover:text-white bg-transparent'}`}>
           DEPLOY UNIT
         </Button>
       </div>

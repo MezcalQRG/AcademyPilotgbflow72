@@ -64,7 +64,7 @@ export default async function LandingPage() {
                 </Button>
               } 
             />
-            <FreeTrialDialog>
+            <FreeTrialDialog tenantSlug="hq">
               <Button className="bg-primary hover:bg-primary/90 text-white font-black uppercase italic tracking-widest px-8 rounded-none h-10">
                 Free Trial
               </Button>
@@ -163,7 +163,7 @@ export default async function LandingPage() {
                 </p>
               </div>
               <div className="flex gap-4">
-                <FreeTrialDialog>
+                <FreeTrialDialog tenantSlug="hq">
                   <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full font-black uppercase italic tracking-tighter w-36 h-36 flex flex-col items-center justify-center text-center leading-none shadow-2xl border-4 border-white/10 transition-transform hover:scale-110 text-lg text-white">
                     FREE<br/>TRIAL
                   </Button>
@@ -234,7 +234,7 @@ export default async function LandingPage() {
             </div>
             <div className="space-y-6">
               <h4 className="font-headline text-[10px] font-black uppercase tracking-[0.3em] text-primary">Tactical Links</h4>
-              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-white/60">
+              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-foreground/60 dark:text-white/60">
                 <li><Link href="#programs" className="hover:text-primary">Programs Matrix</Link></li>
                 <li><Link href="/locator" className="hover:text-primary">Coordinate Finder</Link></li>
                 <li><Link href="#" className="hover:text-primary">History Registry</Link></li>
@@ -243,7 +243,7 @@ export default async function LandingPage() {
             </div>
             <div className="space-y-6">
               <h4 className="font-headline text-[10px] font-black uppercase tracking-[0.3em] text-primary">Operational</h4>
-              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-white/60">
+              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-foreground/60 dark:text-white/60">
                 <li>
                   <AuthModal mode="admin" trigger={<button className="hover:text-primary text-primary">Command Dashboard</button>} />
                 </li>
@@ -277,14 +277,14 @@ export default async function LandingPage() {
 
 function ProgramCard({ title, level, description, details, featured = false }: { title: string, level: string, description: string, details: string, featured?: boolean }) {
   return (
-    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-slate-100 text-slate-900 scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50'}`}>
-      <div className={`text-[10px] font-black uppercase tracking-[0.3em] ${featured ? 'text-primary' : 'text-primary'}`}>
+    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-secondary text-white scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50'}`}>
+      <div className={`text-[10px] font-black uppercase tracking-[0.3em] ${featured ? 'text-white/60' : 'text-primary'}`}>
         {level}
       </div>
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
-      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-slate-600' : 'text-slate-500'}`}>{description}</p>
+      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-slate-500'}`}>{description}</p>
       <div className="mt-auto pt-8">
-        <Button asChild variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-slate-900 hover:bg-slate-900 hover:text-white bg-transparent'}`}>
+        <Button asChild variant={featured ? 'secondary' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-white text-secondary hover:bg-slate-100 border-white' : 'border-slate-900 hover:bg-slate-900 hover:text-white bg-transparent'}`}>
           <Link href={`/checkout?plan=${encodeURIComponent(title)}&price=${itemPrice(title)}&details=${encodeURIComponent(details)}`}>
             Access Directive
           </Link>
