@@ -51,12 +51,6 @@ export function ThemeToggle() {
         >
           Dark Protocol
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme("system")}
-          className="font-black uppercase italic text-[10px] tracking-widest cursor-pointer p-3"
-        >
-          System Matrix
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
