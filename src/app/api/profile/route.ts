@@ -1,21 +1,20 @@
-
 import { NextResponse } from 'next/server';
-import { initializeFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 
 export async function PATCH(req: Request) {
   try {
-    const { firestore } = initializeFirebase();
+    const admin = getFirebaseAdmin();
+    const db = admin.firestore();
     const data = await req.json();
     const { userId, ...profileUpdates } = data;
 
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const profileRef = doc(firestore, 'user_profiles', userId);
-    await updateDoc(profileRef, {
+    const profileRef = db.collection('user_profiles').doc(userId);
+    await profileRef.set({
       ...profileUpdates,
-      updatedAt: serverTimestamp()
-    });
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
