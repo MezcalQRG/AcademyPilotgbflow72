@@ -182,7 +182,7 @@ export default function StoreAssemble({ photoUrls }: StoreAssembleProps) {
       </div>
 
       {/* Tactical Header */}
-      <div ref={headerRef} className="absolute top-0 left-0 w-full h-24 border-b-4 border-border bg-black/40 backdrop-blur-xl z-[100] flex items-center justify-between px-12">
+      <div ref={headerRef} className="absolute top-0 left-0 w-full h-24 border-b-4 border-border bg-background/40 backdrop-blur-xl z-[100] flex items-center justify-between px-12">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 flex items-center justify-center">
             <img 

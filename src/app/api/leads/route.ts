@@ -1,46 +1,61 @@
-
 import { NextResponse } from 'next/server';
-import { initializeFirebase } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
+import { createRequestId, logger, serializeError } from '@/lib/logger';
 
 export async function POST(req: Request) {
+  const requestId = createRequestId();
   try {
-    const { firestore } = initializeFirebase();
+    const admin = getFirebaseAdmin();
+    const db = admin.firestore();
     const data = await req.json();
     const { userId, ...leadData } = data;
 
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized', requestId }, { status: 401 });
+    }
 
-    const leadsRef = collection(firestore, 'user_profiles', userId, 'leads');
-    const newLeadRef = doc(leadsRef);
+    const leadRef = db.collection('user_profiles').doc(userId).collection('leads').doc();
     
     const payload = {
       ...leadData,
-      id: newLeadRef.id,
+      id: leadRef.id,
       userId,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    await setDoc(newLeadRef, payload);
-    return NextResponse.json({ success: true, id: newLeadRef.id });
+    await leadRef.set(payload);
+    
+    logger.info('Lead initialized in registry', { requestId, userId, leadId: leadRef.id });
+    return NextResponse.json({ success: true, id: leadRef.id, requestId });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error('Lead initialization failure', { requestId, error: serializeError(error) });
+    return NextResponse.json({ error: error.message, requestId }, { status: 500 });
   }
 }
 
 export async function PATCH(req: Request) {
+  const requestId = createRequestId();
   try {
-    const { firestore } = initializeFirebase();
+    const admin = getFirebaseAdmin();
+    const db = admin.firestore();
     const data = await req.json();
     const { userId, leadId, ...updates } = data;
 
-    if (!userId || !leadId) return NextResponse.json({ error: 'Missing Params' }, { status: 400 });
+    if (!userId || !leadId) {
+      return NextResponse.json({ error: 'Missing parameters', requestId }, { status: 400 });
+    }
 
-    const leadRef = doc(firestore, 'user_profiles', userId, 'leads', leadId);
-    await updateDoc(leadRef, { ...updates, updatedAt: serverTimestamp() });
-    return NextResponse.json({ success: true });
+    const leadRef = db.collection('user_profiles').doc(userId).collection('leads').doc(leadId);
+    await leadRef.update({
+      ...updates,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    logger.info('Lead matrix updated', { requestId, userId, leadId });
+    return NextResponse.json({ success: true, requestId });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error('Lead update failure', { requestId, error: serializeError(error) });
+    return NextResponse.json({ error: error.message, requestId }, { status: 500 });
   }
 }

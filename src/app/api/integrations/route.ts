@@ -1,46 +1,59 @@
-
 import { NextResponse } from 'next/server';
-import { initializeFirebase } from '@/firebase';
-import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
+import { createRequestId, logger, serializeError } from '@/lib/logger';
 
 export async function POST(req: Request) {
+  const requestId = createRequestId();
   try {
-    const { firestore } = initializeFirebase();
+    const admin = getFirebaseAdmin();
+    const db = admin.firestore();
     const data = await req.json();
     const { userId, configId, name, ...configData } = data;
 
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized', requestId }, { status: 401 });
+    }
 
-    const configRef = doc(firestore, 'user_profiles', userId, 'integration_configs', configId);
+    const configRef = db.collection('user_profiles').doc(userId).collection('integration_configs').doc(configId);
     const payload = {
       ...configData,
       id: configId,
       userId,
       name,
-      updatedAt: serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       status: 'active'
     };
 
-    await setDoc(configRef, payload, { merge: true });
-    return NextResponse.json({ success: true });
+    await configRef.set(payload, { merge: true });
+    
+    logger.info('Vendor credential secured', { requestId, userId, configId });
+    return NextResponse.json({ success: true, requestId });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error('Integration handshake failure', { requestId, error: serializeError(error) });
+    return NextResponse.json({ error: error.message, requestId }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
+  const requestId = createRequestId();
   try {
-    const { firestore } = initializeFirebase();
+    const admin = getFirebaseAdmin();
+    const db = admin.firestore();
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
     const configId = searchParams.get('configId');
 
-    if (!userId || !configId) return NextResponse.json({ error: 'Missing Params' }, { status: 400 });
+    if (!userId || !configId) {
+      return NextResponse.json({ error: 'Missing parameters', requestId }, { status: 400 });
+    }
 
-    const configRef = doc(firestore, 'user_profiles', userId, 'integration_configs', configId);
-    await deleteDoc(configRef);
-    return NextResponse.json({ success: true });
+    const configRef = db.collection('user_profiles').doc(userId).collection('integration_configs').doc(configId);
+    await configRef.delete();
+    
+    logger.info('Vendor link terminated', { requestId, userId, configId });
+    return NextResponse.json({ success: true, requestId });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error('Integration purge failure', { requestId, error: serializeError(error) });
+    return NextResponse.json({ error: error.message, requestId }, { status: 500 });
   }
 }

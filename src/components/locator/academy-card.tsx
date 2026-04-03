@@ -34,14 +34,14 @@ export function AcademyCard({ academy, onClick, isSelected, index }: AcademyCard
       className={`cursor-pointer transition-all duration-300 hover:border-primary/50 group overflow-hidden relative rounded-none border-2 ${isSelected ? 'border-primary bg-primary/5 shadow-[8px_8px_0px_rgba(225,29,72,0.1)]' : 'border-border bg-card'}`}
       onClick={() => onClick(academy)}
     >
-      <div className="absolute top-0 right-0 w-1/2 h-32 opacity-20 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none overflow-hidden">
+      <div className="absolute top-0 right-0 w-1/2 h-32 opacity-50 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none overflow-hidden">
         <Image 
           src={photoUrl} 
           alt=""
           fill
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-card via-card/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-card/90 via-card/20 to-transparent" />
       </div>
 
       <div className="absolute top-0 left-0 w-12 h-12 bg-primary flex items-center justify-center border-r-2 border-b-2 border-primary z-10">

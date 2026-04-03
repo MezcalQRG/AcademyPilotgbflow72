@@ -79,7 +79,7 @@ export function ScrollRevealImage({
     <div
       ref={ref}
       className={cn(
-        "absolute w-full transition-all duration-[800ms] ease-out pointer-events-none z-0",
+        "absolute w-full transition-all duration-700 ease-out pointer-events-none z-0",
         getPositionClasses(),
         maxWidth,
         getTransformClasses()

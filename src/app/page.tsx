@@ -64,7 +64,7 @@ export default async function LandingPage() {
                 </Button>
               } 
             />
-            <FreeTrialDialog>
+            <FreeTrialDialog tenantSlug="hq">
               <Button className="bg-primary hover:bg-primary/90 text-white font-black uppercase italic tracking-widest px-8 rounded-none h-10">
                 Free Trial
               </Button>
@@ -82,10 +82,11 @@ export default async function LandingPage() {
               <div className="inline-block bg-primary px-4 py-1 text-white text-[10px] font-black uppercase tracking-[0.3em] italic shadow-sm">
                 Organizing the World of Jiu-Jitsu
               </div>
-              <h1 className="font-headline text-6xl md:text-8xl font-black leading-none uppercase italic text-slate-900 dark:text-white tracking-tighter">
-                Jiu-Jitsu <br /> For <span className="text-primary">Everyone</span>
+              <h1 className="font-headline text-6xl md:text-8xl font-black leading-none uppercase italic text-white tracking-tighter drop-shadow-lg">
+                Jiu-Jitsu <br />
+                For <span className="text-primary">Everyone</span>
               </h1>
-              <p className="text-xl text-slate-700 dark:text-white/80 max-w-lg font-bold uppercase italic tracking-tight leading-relaxed">
+              <p className="text-xl text-white dark:text-white/80 max-w-lg font-bold uppercase italic tracking-tight leading-relaxed drop-shadow-md">
                 Join the largest and most successful Brazilian Jiu-Jitsu team in the world. Master the art, improve your health, and join our brotherhood.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -102,19 +103,19 @@ export default async function LandingPage() {
         <Marquee variant="black" />
 
         {/* Programs Section */}
-        <section id="programs" className="py-24 bg-white dark:bg-zinc-950">
+        <section id="programs" className="py-24 bg-white">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="space-y-4 border-l-8 border-primary pl-8">
                 <h2 className="font-headline text-xs font-black uppercase tracking-[0.4em] text-primary">Inversión Táctica</h2>
-                <h3 className="font-headline text-6xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white leading-none">Desglose de Pagos</h3>
+                <h3 className="font-headline text-6xl font-black uppercase tracking-tighter italic text-slate-900 leading-none">Desglose de Pagos</h3>
               </div>
-              <p className="text-slate-600 dark:text-muted-foreground max-w-sm font-bold uppercase text-[10px] tracking-widest leading-loose">
+              <p className="text-slate-600 max-w-sm font-bold uppercase text-[10px] tracking-widest leading-loose">
                 Estructura de inversión para unidades operativas. Entrenamiento certificado, ambiente seguro, comunidad global.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-0 border-4 border-slate-900 dark:border-black">
+            <div className="grid md:grid-cols-3 gap-0 border-4 border-slate-900">
               <ProgramCard 
                 title="Plan Semestral"
                 level="Ciclo: 6 Meses"
@@ -154,17 +155,17 @@ export default async function LandingPage() {
             <div className="max-w-xl space-y-8 text-left">
               <div className="space-y-4">
                 <Badge className="bg-primary text-white font-black uppercase italic tracking-widest rounded-none px-4 border border-white/20">Mission: Join the Legacy</Badge>
-                <h2 className="font-headline text-6xl md:text-7xl font-black uppercase italic tracking-tighter leading-none text-slate-900 dark:text-white">
+                <h2 className="font-headline text-6xl md:text-7xl font-black uppercase italic tracking-tighter leading-none text-white drop-shadow-lg">
                   Establish Your <br />
                   <span className="text-primary drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">Presence</span>
                 </h2>
-                <p className="text-xl text-slate-700 dark:text-white/80 font-bold uppercase italic tracking-tight">
+                <p className="text-xl text-white dark:text-white/80 font-bold uppercase italic tracking-tight drop-shadow-md">
                   Step onto the mats and start your journey with the world's most successful team.
                 </p>
               </div>
               <div className="flex gap-4">
-                <FreeTrialDialog>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full font-black uppercase italic tracking-tighter w-36 h-36 flex flex-col items-center justify-center text-center leading-none shadow-2xl border-4 border-white/10 transition-transform hover:scale-110 text-lg text-white">
+                <FreeTrialDialog tenantSlug="hq">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full font-black uppercase italic tracking-tighter w-36 h-36 flex flex-col items-center justify-center text-center leading-none shadow-2xl border-4 border-white/10 transition-transform hover:scale-110 text-lg">
                     FREE<br/>TRIAL
                   </Button>
                 </FreeTrialDialog>
@@ -181,7 +182,7 @@ export default async function LandingPage() {
         <Marquee variant="red" />
 
         {/* Global Reach Section */}
-        <section className="py-24 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-center relative overflow-hidden">
+        <section className="py-24 bg-secondary text-white text-center relative overflow-hidden">
           <ScrollRevealImage 
             src="https://graciebarra.com/wp-content/uploads/2025/04/DSC06242bbb_1.png"
             alt="Gracie Barra Team Silhouette"
@@ -193,20 +194,20 @@ export default async function LandingPage() {
             <div className="max-w-3xl mx-auto space-y-4">
               <History className="h-12 w-12 text-primary mx-auto mb-4" />
               <h2 className="font-headline text-5xl font-black uppercase tracking-tighter italic">One Team. One Shield.</h2>
-              <p className="text-xl text-slate-600 dark:text-muted-foreground font-bold uppercase italic tracking-tight">With over 1,000 schools across 6 continents, Academia Pilot brings the Gracie Barra legacy to your neighborhood.</p>
+              <p className="text-xl text-white/80 font-bold uppercase italic tracking-tight">With over 1,000 schools across 6 continents, Academia Pilot brings the Gracie Barra legacy to your neighborhood.</p>
             </div>
             <div className="grid sm:grid-cols-3 gap-12 max-w-5xl mx-auto pt-8">
               <div>
                 <div className="text-6xl font-black text-primary italic mb-2">1,000+</div>
-                <div className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground">Deployed Schools</div>
+                <div className="uppercase tracking-[0.3em] text-[10px] font-black text-white/60">Deployed Schools</div>
               </div>
               <div>
                 <div className="text-6xl font-black text-primary italic mb-2">35+</div>
-                <div className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground">Operational Years</div>
+                <div className="uppercase tracking-[0.3em] text-[10px] font-black text-white/60">Operational Years</div>
               </div>
               <div>
                 <div className="text-6xl font-black text-primary italic mb-2">100k+</div>
-                <div className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground">Active Units</div>
+                <div className="uppercase tracking-[0.3em] text-[10px] font-black text-white/60">Active Units</div>
               </div>
             </div>
           </div>
@@ -234,7 +235,7 @@ export default async function LandingPage() {
             </div>
             <div className="space-y-6">
               <h4 className="font-headline text-[10px] font-black uppercase tracking-[0.3em] text-primary">Tactical Links</h4>
-              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-white/60">
+              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-foreground/60 dark:text-white/60">
                 <li><Link href="#programs" className="hover:text-primary">Programs Matrix</Link></li>
                 <li><Link href="/locator" className="hover:text-primary">Coordinate Finder</Link></li>
                 <li><Link href="#" className="hover:text-primary">History Registry</Link></li>
@@ -243,7 +244,7 @@ export default async function LandingPage() {
             </div>
             <div className="space-y-6">
               <h4 className="font-headline text-[10px] font-black uppercase tracking-[0.3em] text-primary">Operational</h4>
-              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-white/60">
+              <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-foreground/60 dark:text-white/60">
                 <li>
                   <AuthModal mode="admin" trigger={<button className="hover:text-primary text-primary">Command Dashboard</button>} />
                 </li>
@@ -277,14 +278,14 @@ export default async function LandingPage() {
 
 function ProgramCard({ title, level, description, details, featured = false }: { title: string, level: string, description: string, details: string, featured?: boolean }) {
   return (
-    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 dark:border-black ${featured ? 'bg-slate-100 dark:bg-secondary text-slate-900 dark:text-white scale-105 z-10 shadow-2xl relative' : 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
-      <div className={`text-[10px] font-black uppercase tracking-[0.3em] ${featured ? 'text-primary' : 'text-primary'}`}>
+    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-secondary text-white scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50 dark:bg-zinc-100 dark:hover:bg-zinc-200'}`}>
+      <div className={`text-[10px] font-black uppercase tracking-[0.3em] ${featured ? 'text-white/60' : 'text-primary'}`}>
         {level}
       </div>
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
-      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-slate-600 dark:text-white/80' : 'text-slate-500 dark:text-muted-foreground'}`}>{description}</p>
+      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-slate-500'}`}>{description}</p>
       <div className="mt-auto pt-8">
-        <Button asChild variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-slate-900 dark:border-white hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-black bg-transparent'}`}>
+        <Button asChild className="w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all bg-primary hover:bg-primary/90 text-white border-primary shadow-lg">
           <Link href={`/checkout?plan=${encodeURIComponent(title)}&price=${itemPrice(title)}&details=${encodeURIComponent(details)}`}>
             Access Directive
           </Link>

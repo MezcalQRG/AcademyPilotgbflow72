@@ -79,6 +79,11 @@ export function MembershipDangerZone({ academyName, slug }: MembershipDangerZone
   }
 
   async function handleRequestOtp() {
+    if (mode === 'cancel' && confirmName.trim() !== (academyName || slug)) {
+      toast({ variant: 'destructive', title: 'NAME MISMATCH', description: 'Type your academy name exactly to proceed.' });
+      return;
+    }
+
     const token = await getToken();
     if (!token) {
       toast({ variant: 'destructive', title: 'AUTH REQUIRED', description: 'Please sign in again.' });
@@ -109,11 +114,6 @@ export function MembershipDangerZone({ academyName, slug }: MembershipDangerZone
   async function handleExecute() {
     if (!otp || otp.trim().length !== 6) {
       toast({ variant: 'destructive', title: 'INVALID CODE', description: 'Enter the 6-digit code from your email.' });
-      return;
-    }
-
-    if (mode === 'cancel' && confirmName.trim() === '') {
-      toast({ variant: 'destructive', title: 'CONFIRMATION REQUIRED', description: 'Type your academy name to confirm.' });
       return;
     }
 
@@ -215,24 +215,6 @@ export function MembershipDangerZone({ academyName, slug }: MembershipDangerZone
               Check your email for the 6-digit code.
             </p>
           </div>
-
-          {mode === 'cancel' && (
-            <div className="space-y-2 border-t border-destructive/20 pt-4">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-destructive">
-                Type your academy name to confirm
-              </Label>
-              <Input
-                value={confirmName}
-                onChange={e => setConfirmName(e.target.value)}
-                placeholder={academyName || slug}
-                className="rounded-none border-2 border-destructive/40 h-12 bg-destructive/5"
-                disabled={loading}
-              />
-              <p className="text-[9px] text-destructive/70 uppercase tracking-wider">
-                Type exactly: <strong>{academyName || slug}</strong>
-              </p>
-            </div>
-          )}
         </CardContent>
         <CardFooter className="p-6 flex gap-3 border-t border-border">
           <Button
@@ -289,6 +271,22 @@ export function MembershipDangerZone({ academyName, slug }: MembershipDangerZone
               <p className="text-[9px] text-muted-foreground mt-2">
                 A secure backup is stored in S3 for 31 days. Academy slug <strong>{slug}</strong> will be permanently reserved.
               </p>
+              
+              <div className="space-y-2 border-t border-destructive/20 pt-4 mt-4">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-destructive">
+                  Type your academy name to confirm
+                </Label>
+                <Input
+                  value={confirmName}
+                  onChange={e => setConfirmName(e.target.value)}
+                  placeholder={academyName || slug}
+                  className="rounded-none border-2 border-destructive/40 h-12 bg-destructive/5"
+                  disabled={loading}
+                />
+                <p className="text-[9px] text-destructive/70 uppercase tracking-wider">
+                  Type exactly: <strong>{academyName || slug}</strong>
+                </p>
+              </div>
             </div>
           )}
           <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">

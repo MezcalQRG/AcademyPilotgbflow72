@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -90,10 +89,12 @@ export function AcademyTemplate({
               <div className="inline-block bg-primary px-4 py-1 text-white text-[10px] font-black uppercase tracking-[0.3em] italic shadow-sm">
                 {branchName || "GRACIE BARRA"} Tactical Unit Deployed
               </div>
-              <h1 className="font-headline text-6xl md:text-8xl font-black leading-none uppercase italic text-slate-900 dark:text-white tracking-tighter">
-                {headline || "Jiu-Jitsu For Everyone"}
+              <h1 className="font-headline text-6xl md:text-8xl font-black leading-none uppercase italic text-white tracking-tighter drop-shadow-lg">
+                {headline ? headline : (
+                  <>Jiu-Jitsu <br /> For <span className="text-primary">Everyone</span></>
+                )}
               </h1>
-              <p className="text-xl text-slate-700 dark:text-white/80 max-w-lg font-bold uppercase italic tracking-tight leading-relaxed">
+              <p className="text-xl text-white dark:text-white/80 max-w-lg font-bold uppercase italic tracking-tight leading-relaxed drop-shadow-md">
                 {subheadline || `Join the largest and most successful Brazilian Jiu-Jitsu team in the world. Master the art at our ${branchName || "localized"} academy.`}
               </p>
               
@@ -109,16 +110,16 @@ export function AcademyTemplate({
         <Marquee variant="black" />
 
         {/* Programs Matrix */}
-        <section id="programs" className="py-24 bg-white dark:bg-zinc-950">
+        <section id="programs" className="py-24 bg-white">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="space-y-4 border-l-8 border-primary pl-8">
                 <h2 className="font-headline text-xs font-black uppercase tracking-[0.4em] text-primary">Operational Matrix</h2>
-                <h3 className="font-headline text-6xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white leading-none">{branchName || "Academy"} Programs</h3>
+                <h3 className="font-headline text-6xl font-black uppercase tracking-tighter italic text-slate-900 leading-none">{branchName || "Academy"} Programs</h3>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-0 border-4 border-slate-900 dark:border-black">
+            <div className="grid md:grid-cols-3 gap-0 border-4 border-slate-900">
               <ProgramCard title="GB1 Fundamentals" desc="The foundation of our mission. Designed for beginner units." />
               <ProgramCard title="GB2 Advanced" desc="Advanced tactical development. Maximum strategic engagement." featured />
               <ProgramCard title="Little Champions" desc="Future legacy initialization. Youth enrollment active." />
@@ -135,13 +136,13 @@ export function AcademyTemplate({
             <div className="max-w-xl space-y-8 text-left">
               <div className="space-y-4">
                 <Badge className="bg-primary text-white font-black uppercase italic tracking-widest rounded-none px-4 border border-white/20">Establish Presence</Badge>
-                <h2 className="font-headline text-6xl md:text-7xl font-black uppercase italic tracking-tighter leading-none text-slate-900 dark:text-white">
+                <h2 className="font-headline text-6xl md:text-7xl font-black uppercase italic tracking-tighter leading-none text-white drop-shadow-lg">
                   Join the <br />
-                  <span className="text-primary">{branchName || "Gracie Barra"} Team</span>
+                  <span className="text-primary drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]">{branchName || "Gracie Barra"} Team</span>
                 </h2>
               </div>
               
-              <div className="grid grid-cols-1 gap-4 text-sm font-bold uppercase italic tracking-widest text-slate-700 dark:text-white/80">
+              <div className="grid grid-cols-1 gap-4 text-sm font-bold uppercase italic tracking-widest text-white dark:text-white/80 drop-shadow-md">
                 {address && <div className="flex items-center gap-3"><MapPin className="h-5 w-5 text-primary" /> {address}</div>}
                 {contactPhone && <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" /> {contactPhone}</div>}
                 {contactEmail && <div className="flex items-center gap-3"><Mail className="h-5 w-5 text-primary" /> {contactEmail}</div>}
@@ -181,11 +182,11 @@ export function AcademyTemplate({
 
 function ProgramCard({ title, desc, featured = false }: { title: string, desc: string, featured?: boolean }) {
   return (
-    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 dark:border-black ${featured ? 'bg-slate-100 dark:bg-secondary text-slate-900 dark:text-white scale-105 z-10 shadow-2xl relative' : 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
+    <div className={`p-10 space-y-6 flex flex-col transition-all duration-300 border-r-2 last:border-r-0 border-slate-200 ${featured ? 'bg-secondary text-white scale-105 z-10 shadow-2xl relative' : 'bg-white text-slate-900 hover:bg-slate-50 dark:bg-zinc-100 dark:hover:bg-zinc-200'}`}>
       <h4 className="font-headline text-3xl font-black uppercase italic tracking-tighter leading-none">{title}</h4>
-      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-slate-600 dark:text-white/80' : 'text-slate-500 dark:text-muted-foreground'}`}>{desc}</p>
+      <p className={`text-sm font-bold uppercase tracking-tight leading-relaxed ${featured ? 'text-white/80' : 'text-slate-500'}`}>{desc}</p>
       <div className="mt-auto pt-8">
-        <Button variant={featured ? 'default' : 'outline'} className={`w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all ${featured ? 'bg-primary hover:bg-primary/90 border-primary text-white' : 'border-slate-900 dark:border-white hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-black bg-transparent'}`}>
+        <Button className="w-full font-black uppercase italic tracking-widest rounded-none h-14 text-xs transition-all bg-primary hover:bg-primary/90 text-white border-primary shadow-lg">
           DEPLOY UNIT
         </Button>
       </div>

@@ -2,29 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface PhotoGridProps {
   photoUrls: string[];
+  variant?: 'standard' | 'mosaic';
 }
 
-export function PhotoGrid({ photoUrls }: PhotoGridProps) {
+export function PhotoGrid({ photoUrls, variant = 'standard' }: PhotoGridProps) {
   const [currentPhotos, setCurrentPhotos] = useState<string[]>([]);
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   useEffect(() => {
     if (photoUrls.length === 0) return;
 
-    // Use up to 12 photos for the grid
+    // Tactical configuration based on visual variant
+    const maxPhotos = variant === 'mosaic' ? 60 : 12;
+    const maxWidth = variant === 'mosaic' ? 400 : 1024;
+
+    // Process photo URLs to handle Google Places resource names with optimized resolution
     const formattedUrls = photoUrls.map(urlOrRef => {
-      // Handle potential Places API (New) photo resource names
       if (urlOrRef.startsWith('places/')) {
-        return `https://places.googleapis.com/v1/${urlOrRef}/media?key=${apiKey}&maxWidthPx=1024`;
+        return `https://places.googleapis.com/v1/${urlOrRef}/media?key=${apiKey}&maxWidthPx=${maxWidth}`;
       }
       return urlOrRef;
     });
 
-    setCurrentPhotos(formattedUrls.slice(0, 12));
+    // Populate the tactical registry, looping if necessary to fill the density requirements
+    let displayList = [...formattedUrls];
+    while (displayList.length < maxPhotos && formattedUrls.length > 0) {
+      displayList = [...displayList, ...formattedUrls];
+    }
+    setCurrentPhotos(displayList.slice(0, maxPhotos));
 
+    // Dynamic rotation protocol: swap individual tiles randomly to maintain a live environment feel
     const interval = setInterval(() => {
       setCurrentPhotos(prev => {
         const next = [...prev];
@@ -39,7 +50,7 @@ export function PhotoGrid({ photoUrls }: PhotoGridProps) {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [photoUrls, apiKey]);
+  }, [photoUrls, apiKey, variant]);
 
   if (currentPhotos.length === 0) {
     return (
@@ -50,9 +61,13 @@ export function PhotoGrid({ photoUrls }: PhotoGridProps) {
     );
   }
 
+  const gridClasses = variant === 'mosaic'
+    ? "grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 h-full w-full opacity-100"
+    : "grid grid-cols-2 md:grid-cols-4 grid-rows-6 md:grid-rows-3 h-full w-full opacity-100";
+
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden bg-zinc-950">
-      <div className="grid grid-cols-2 md:grid-cols-4 grid-rows-6 md:grid-rows-3 h-full w-full opacity-100">
+      <div className={gridClasses}>
         {currentPhotos.map((photo, index) => (
           <div key={`${photo}-${index}`} className="relative h-full w-full border border-white/5">
             <Image
@@ -61,7 +76,7 @@ export function PhotoGrid({ photoUrls }: PhotoGridProps) {
               fill
               style={{ objectFit: 'cover' }}
               className="animate-in fade-in duration-1000"
-              sizes="(max-width: 768px) 50vw, 25vw"
+              sizes={variant === 'mosaic' ? "10vw" : "(max-width: 768px) 50vw, 25vw"}
             />
           </div>
         ))}
